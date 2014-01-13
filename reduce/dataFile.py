@@ -611,11 +611,16 @@ class DataTrace:
         return self.label
 
     def get_data(self):
+        '''
+        given filename (self.textfile) and column index (self.column), 
+        opens and reads file and 
+        returns a list of floats of the specified column. 
+        '''
         if self.length != 0:
             return self.data
         elif os.access(self.textfile, os.R_OK):
             f = open(self.textfile, 'rU')
-            reader = csv.reader(f, delimiter='\t')
+            reader = csv.reader(f, delimiter='\t') #!!! try to avoid need for csv library stuff
             data = []
 
             is_first_time = True
@@ -639,8 +644,8 @@ class DataTrace:
             #print 'NO DATA!!!'
         return data
 
-    def tdd_split(self, line):
-        return [field.strip() for field in line.split('\t')]
+    def tdd_split(self, line, delimiter='\t'): #!!! consider deleting since not called by any active code
+        return [field.strip() for field in line.split(delimiter)]
         # old code preserved below
         words = []
         while line != '':
@@ -651,7 +656,9 @@ class DataTrace:
         #print words
         return words
 
-    def get_point(self, row):
+    def get_point(self, row): #!!! try to eliminate need for. Not called much. 
+        return float(self.get_data()[row])
+        # old code preserved below
         count = 0
         for word in self.get_data():
             if count == row:

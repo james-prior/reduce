@@ -1,3 +1,18 @@
+2011-08-04 reduce-2.2.4-jep02 James Prior
+
+    dataFile.py
+
+        Simplified DataTrace.get_point(). 
+
+2011-08-04 reduce-2.2.4-jep01 James Prior
+
+    dataFile.py
+
+        Added delimiter argument to dataFile.tdd_split(), 
+        to make it more general. 
+
+        Added some comments. 
+
 2011-08-04 reduce-2.2.3-bwh01 Bryan Harris
 
     setup.py

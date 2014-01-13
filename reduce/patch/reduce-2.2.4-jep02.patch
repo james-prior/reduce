@@ -1,0 +1,37 @@
+diff -Naur reduce-2.2.4-jep01/dataFile.py reduce-2.2.4-jep02/dataFile.py
+--- reduce-2.2.4-jep01/dataFile.py	2011-07-30 01:45:04.000000000 -0400
++++ reduce-2.2.4-jep02/dataFile.py	2011-08-03 22:43:52.109675783 -0400
+@@ -657,6 +657,8 @@
+         return words
+ 
+     def get_point(self, row): #!!! try to eliminate need for. Not called much. 
++        return float(self.get_data()[row])
++        # old code preserved below
+         count = 0
+         for word in self.get_data():
+             if count == row:
+diff -Naur reduce-2.2.4-jep01/HISTORY reduce-2.2.4-jep02/HISTORY
+--- reduce-2.2.4-jep01/HISTORY	2011-08-04 12:28:32.495623091 -0400
++++ reduce-2.2.4-jep02/HISTORY	2011-08-04 12:34:43.306961361 -0400
+@@ -1,3 +1,9 @@
++2011-08-04 reduce-2.2.4-jep02 James Prior
++
++    dataFile.py
++
++        Simplified DataTrace.get_point(). 
++
+ 2011-08-04 reduce-2.2.4-jep01 James Prior
+ 
+     dataFile.py
+diff -Naur reduce-2.2.4-jep01/MD5SUM reduce-2.2.4-jep02/MD5SUM
+--- reduce-2.2.4-jep01/MD5SUM	2011-08-04 12:34:58.546769771 -0400
++++ reduce-2.2.4-jep02/MD5SUM	2011-08-04 12:40:40.090475983 -0400
+@@ -1,6 +1,6 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-b425b074e402b4269cb5b0c4b4400efd  dataFile.py
+-9210e8996eafe29ddd74f2465a093f2d  HISTORY
++7fc37286d0dc3999183f5001a08e045d  dataFile.py
++e3a1d6ae52a7717eb4cd9469306b7554  HISTORY
+ 7eb888b27c8dfbfe88545385dc12a12b  measurementFile.py
+ 6d00adcfeced31b25a43b79a9a83fbff  reducePlot.py
+ 79508b7d560a8a5d73f33116f5fbb8ca  rlo.py
