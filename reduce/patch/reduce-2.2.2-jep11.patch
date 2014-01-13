@@ -1,0 +1,185 @@
+diff -Naur reduce-2.2.2-jep10/dataFile.py reduce-2.2.2-jep11/dataFile.py
+--- reduce-2.2.2-jep10/dataFile.py	2011-07-26 15:31:07.000000000 -0400
++++ reduce-2.2.2-jep11/dataFile.py	2011-07-27 10:31:40.215176164 -0400
+@@ -561,7 +561,7 @@
+     def __init__(self, filename, column, label, *args, **kwargs):
+         self.textfile = filename
+         self.column = column
+-        self.length = 0
++        self.length = 0 #!!! delete this line? 
+         self.data = self.get_data()
+         self.length = self.get_length()
+         if label == '':
+@@ -575,7 +575,7 @@
+     def __str__(self):
+         return str(self.textfile) + ' ' + str(self.column) + ' ' + self.label + ' ' + str(self.length)
+ 
+-    def get_length(self):
++    def get_length(self): #!!! return value versus self.length? 
+         length = len(self.data)
+         if length != 0:
+             return length
+diff -Naur reduce-2.2.2-jep10/HISTORY reduce-2.2.2-jep11/HISTORY
+--- reduce-2.2.2-jep10/HISTORY	2011-07-27 10:52:38.003363627 -0400
++++ reduce-2.2.2-jep11/HISTORY	2011-07-27 11:04:17.534569329 -0400
+@@ -1,3 +1,9 @@
++2011-07-27 reduce-2.2.2-jep11 James Prior
++
++    measurementFile.py
++
++        Refactored Specimen class. 
++
+ 2011-07-27 reduce-2.2.2-jep10 James Prior
+ 
+     measurementFile.py
+diff -Naur reduce-2.2.2-jep10/MD5SUM reduce-2.2.2-jep11/MD5SUM
+--- reduce-2.2.2-jep10/MD5SUM	2011-07-27 10:52:59.299095902 -0400
++++ reduce-2.2.2-jep11/MD5SUM	2011-07-27 11:22:48.132607220 -0400
+@@ -1,7 +1,7 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-c6e9ca21374e9d902506e569139bc160  dataFile.py
+-dd8f1034a89ebe8338d044b32d34d2b7  HISTORY
+-727f9eb12cd3fcf73816bd7077088865  measurementFile.py
++48922156b0b0cd62ab6645901b211b52  dataFile.py
++aead3132c7f6ab445f6cacff56be3201  HISTORY
++a9611f22763c91f0be671fd372aabcc2  measurementFile.py
+ 82261669a64efc2dcfd6ae421eb7053f  reducePlot.py
+ 17e163e9d29bfa64d4aa8c2e6dc8fea1  rlo.py
+ 92f9899ed684652be377a18488d867da  setup.py
+diff -Naur reduce-2.2.2-jep10/measurementFile.py reduce-2.2.2-jep11/measurementFile.py
+--- reduce-2.2.2-jep10/measurementFile.py	2011-07-27 10:51:26.364264252 -0400
++++ reduce-2.2.2-jep11/measurementFile.py	2011-07-27 11:22:43.164669675 -0400
+@@ -21,6 +21,8 @@
+ import tempfile
+ import shutil
+ 
++import math
++
+ class MeasFile:
+     filename = ''
+     if False: #!!! unused variablles, consider deleting them. 
+@@ -30,7 +32,7 @@
+         acct_number = ''
+         date = ''
+     sheets = []
+-    specimens = []
++    specimens = [] #!!! the accumulated specimens are never used, so why bother? 
+     book = ''
+     name_rows = range(5, 50+1, 5) #!!! magice numbers
+     name_cols = range(0, 5+1, 5) #!!! magice numbers
+@@ -59,7 +61,7 @@
+                         acell = acell.upper()
+                         acell = acell.replace('STL', '')
+                         acell = acell.strip()
+-                        specimen = SpecRec(acell, arow, acol, sheet)
++                        specimen = Specimen(acell, arow, acol, sheet)
+                         self.specimens.append(specimen)
+                         #this_spec.get_measurements(sheet)
+                         #this_spec.get_thickness(sheet)
+@@ -70,66 +72,53 @@
+     def __str__(self):
+         return self.filename
+ 
+-class SpecRec:
+-    import math #!!! should this be done at top of module? 
+-    stl_id = ''
+-    row = -1
+-    column = -1
+-    length = 0
+-    width = 0
+-    thick = 0
+-    diameter = 0
+-    area = 0
+-    def __init__(self, name, row, column, sheet, *args, **kwargs):
++class Specimen:
++    stl_id = None
++    row = None
++    column = None
++    area = None
++    dimension = {}
++
++    def __init__(self, name, row, column, sheet):
+         self.stl_id = name
+         self.row = row
+         self.column = column
+-        self.get_measurements(sheet)
+-        if self.width != 0 and self.thick != 0:
+-            self.area = self.thick * self.width
+-        if self.diameter != 0:
+-            self.area = self.diameter ** 2 * math.pi / 4
++        self.fetch_measurements(sheet)
++        #!!! need documentation about spreadsheet format (or examples) to further 
++        #!!! The area value is never used, so why bother calculating the it? 
++        try:
++            a = self.dimension['thickness'] * self.dimension['width']
++        except KeyError:
++            pass
++        else:
++            if a != 0: #!!! is this check necessary? 
++                self.area = a
++
++        try:
++            a = self.dimension['diameter'] ** 2 * math.pi / 4
++        except KeyError:
++            pass
++        else:
++            if a != 0: #!!! is this check necessary? 
++                self.area = a
+ 
+     def __str__(self):
+         return str(self.stl_id) + ', ' + str(self.row) + ', '+str(self.column)
+ 
+-    def get_measurements(self, sheet):
+-        self.get_width(sheet)
+-        self.get_thickness(sheet)
+-        self.get_length(sheet)
+-        self.get_diameter(sheet)
+-
+-    def get_width(self, sheet):
+-        for offset in range(1,3+1):
+-            if self.width == 0 and \
+-                sheet.row(self.row)[self.column + offset].value.lower().find('width') != -1:
+-                self.width = sheet.row(self.row + 4)[self.column + offset].value
+-                #print 'Setting width to', self.width
+-        return self.width
+-
+-    def get_thickness(self, sheet):
+-        for offset in range(1,3+1):
+-            if self.thick == 0 and \
+-                sheet.row(self.row)[self.column + offset].value.lower().find('thickness') != -1:
+-                self.thick = sheet.row(self.row + 4)[self.column + offset].value
+-                #print 'Setting thickness to', self.thick
+-        return self.thick
+-
+-    def get_length(self, sheet):
+-        for offset in range(1,3+1):
+-            if self.length == 0 and \
+-                sheet.row(self.row)[self.column + offset].value.lower().find('length') != -1:
+-                self.length = sheet.row(self.row + 4)[self.column + offset].value
+-                #print 'Setting length to', self.length
+-        return self.length
+-
+-    def get_diameter(self, sheet):
+-        for offset in range(1,3+1):
+-            if self.diameter == 0 and \
+-                sheet.row(self.row)[self.column + offset].value.lower().find('diameter') != -1:
+-                self.diameter = sheet.row(self.row + 4)[self.column + offset].value
+-                #print 'Setting diameter to', self.diameter
+-        return self.diameter
++    def fetch_measurements(self, sheet):
++        '''
++        Searches through the specified "sheet" for 
++        for width, thickness, length, and diameter values and 
++        saves found values in the self.dimension dictionary. 
++
++        Takes one argument, a "sheet". 
++        '''
++        for i in ['width','thickness','length','diameter']:
++            for column in range(self.column+1,self.column+3+1):
++                if self.dimension[i] == 0 and \
++                    sheet.row(self.row)[column].value.lower().find(i) != -1:
++                    self.dimension[i] = sheet.row(self.row + 4)[column].value
++                    #print 'Setting', i, 'to', self[i]
+ 
+ if __name__== '__main__':
+     print sys.argv[1]

@@ -1,4 +1,109 @@
-2011-07-22 reduce-2.2.1-jep08
+2011-07-27 reduce-2.2.2-jep12 James Prior
+
+    dataFile.py, reducePlot.py, and measurementFile.py
+
+        Directly make the plot images in the directory you want them to 
+        ultimately be in, instead of making them in the current directory, 
+        then moving them later. 
+
+2011-07-27 reduce-2.2.2-jep11 James Prior
+
+    measurementFile.py
+
+        Refactored Specimen class. 
+
+2011-07-27 reduce-2.2.2-jep10 James Prior
+
+    measurementFile.py
+
+        Removed ASCII CR (carriage return) characters. 
+
+2011-07-26 reduce-2.2.2-jep09 James Prior
+
+    measurementFile.py
+
+        Modest refactorings of MeasFile class. 
+
+2011-07-26 reduce-2.2.2-jep08 James Prior
+
+    rlo.py and dataFile.py
+
+        Miscellaneous refactorings. 
+
+2011-07-26 reduce-2.2.2-jep07 James Prior
+
+    dataFile.py
+
+        Eliminated some get_*() and set_*() method calls by 
+        converting them to direct attribute references, 
+        since the moved code is now in a method of the object 
+        that has the data. 
+
+2011-07-26 reduce-2.2.2-jep06 James Prior
+
+    rlo.py and dataFile.py
+
+        Moved much code from rlo.py to 
+        a new method of the DataFile_SL class in dataFile.py. 
+        (This is just a first step in this move.)
+
+2011-07-26 reduce-2.2.2-jep05 James Prior
+
+    tee.py
+
+        Updated docstrings. 
+
+2011-07-25 reduce-2.2.2-jep04 James Prior
+
+    rlo.py
+
+        Redirected writes to stdout to go to both standard output 
+        and a log file (without using ">>t," explicit redirection). 
+
+2011-07-25 reduce-2.2.2-jep03 James Prior
+
+    dataFile.py and rlo.py
+
+        Mild low level reformatting of all code in these modules to 
+        mostly follow PEP 8 -- Style Guide for Python Code
+        This also affected other modules, particularly for names. 
+
+        Some refactoring. 
+
+2011-07-24 reduce-2.2.2-jep02 James Prior
+
+    measurementFile.py, reducePlot.py, and dataFile.py
+
+        Mild low level reformatting of all code in these modules to 
+        mostly follow PEP 8 -- Style Guide for Python Code
+        This also affected other modules, particularly for names. 
+
+2011-07-23 reduce-2.2.2-jep01 James Prior
+
+    rlo.py
+
+        Slight refactoring of t=Tee code. 
+        Flagged stuff for later attention with '!!!' in comments. 
+        Low level miscellaneous refactorings. 
+
+        Massive low level reformatting of all code in this module to 
+        mostly follow PEP 8 -- Style Guide for Python Code
+        http://www.python.org/dev/peps/pep-0008/
+        This also affected other modules, particularly for names. 
+
+        Massive restructuring of code to call methods to access data 
+        of objects instead of directly accessing them. 
+        Initially, this makes the code uglier than it was. 
+        However, when the code that wanted to use internal data of 
+        ojects so much is moved into the class itself, 
+        the code will become simple and pretty. 
+        Until then things will look ugly. Please have patience. 
+
+    AUTHORS
+
+        Started practice of having this file. 
+
+2011-07-22 reduce-2.2.1-jep08 James Prior
 
     rlo.py
 
@@ -12,7 +117,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-22 reduce-2.2.1-jep07
+2011-07-22 reduce-2.2.1-jep07 James Prior
 
     rlo.py
 
@@ -27,7 +132,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-22 reduce-2.2.1-jep06
+2011-07-22 reduce-2.2.1-jep06 James Prior
 
     rlo.py and dataFile.py
 
@@ -37,7 +142,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-22 reduce-2.2.1-jep05
+2011-07-22 reduce-2.2.1-jep05 James Prior
 
     rlo.py
 
@@ -57,7 +162,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-21 reduce-2.2.1-jep04
+2011-07-21 reduce-2.2.1-jep04 James Prior
 
     rlo.py
 
@@ -69,7 +174,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-21 reduce-2.2.1-jep03
+2011-07-21 reduce-2.2.1-jep03 James Prior
 
     rlo.py
 
@@ -80,7 +185,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-21 reduce-2.2.1-jep02
+2011-07-21 reduce-2.2.1-jep02 James Prior
 
     rlo.py
 
@@ -91,7 +196,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-21 reduce-2.2.0-jep05
+2011-07-21 reduce-2.2.0-jep05 James Prior
 
     rlo.py
 
@@ -100,7 +205,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-21 reduce-2.2.0-jep04
+2011-07-21 reduce-2.2.0-jep04 James Prior
 
     rlo.py
 
@@ -114,7 +219,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-21 reduce-2.2.0-jep03
+2011-07-21 reduce-2.2.0-jep03 James Prior
 
     rlo.py
 
@@ -129,7 +234,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-21 reduce-2.2.0-jep02
+2011-07-21 reduce-2.2.0-jep02 James Prior
 
     rlo.py
 
@@ -167,7 +272,7 @@
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/
 
-2011-07-21 reduce-2.2.0-jep01
+2011-07-21 reduce-2.2.0-jep01 James Prior
 
     rlo.py
 

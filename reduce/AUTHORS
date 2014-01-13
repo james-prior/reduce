@@ -1,0 +1,8 @@
+Bryan Harris brywilharris at gmail dot com
+
+   original author; current maintainer
+
+James Prior echo 'jep5678@columbus.rr.com' | sed -e "s/`echo 2*17*167 | bc`/`echo 2*2*50101 | bc`/"
+
+   misecellaneous bug fixes and refactorings
+

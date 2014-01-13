@@ -1,0 +1,244 @@
+diff -Naur reduce-2.2.2-jep06/dataFile.py reduce-2.2.2-jep07/dataFile.py
+--- reduce-2.2.2-jep06/dataFile.py	2011-07-26 11:22:57.922679240 -0400
++++ reduce-2.2.2-jep07/dataFile.py	2011-07-26 12:26:49.646507946 -0400
+@@ -93,43 +93,14 @@
+                 return count
+             count += 1
+ 
+-    def get_end_of_stroke_line(self):
+-        return self.end_of_stroke_line
+-    def get_area_end_line(self):
+-        return self.area_end_line
+-    def get_load_drop_line(self):
+-        return self.load_drop_line
+-    def get_load_trace(self):
+-        return self.traces[self.LOAD]
+-    def get_stroke_trace(self):
+-        return self.traces[self.STROKE]
+-    def get_time_trace(self):
+-        return self.traces[self.TIME]
+     def get_load_data(self):
+         return self.traces[self.LOAD].get_data()
+     def get_stroke_data(self):
+         return self.traces[self.STROKE].get_data()
+     def get_time_data(self):
+         return self.traces[self.TIME].get_data()
+-    def get_number_of_lines(self):
+-        return self.number_of_lines
+-    def get_raw_number_of_columns(self): #!!! harmonize with get_number_of_columns
+-        return self.number_of_columns
+     def get_number_of_columns(self, textfile):
+         return len(self.traces)
+-    def get_cs_area_in2(self):
+-        return self.cs_area_in2
+-    def get_gage_length_in(self):
+-        return self.gage_length_in
+-    def get_has_measurement_file(self):
+-        return self.has_measurement_file
+-
+-    def set_cs_area_in2(self, x):
+-        self.cs_area_in2 = x
+-    def set_gage_length_in(self, x):
+-        self.gage_length_in = x
+-    def set_has_measurement_file(self, x):
+-        self.has_measurement_file = x
+ 
+     def count_lines(self):
+         f = open(self.textfile, 'rU')
+@@ -213,8 +184,6 @@
+ 
+         self.column_lengths += [len(column_data)]
+ 
+-    def get_traces_raw(self): #!!! temp hack. must coordinate with get_traces()
+-        return self.traces
+     def get_traces(self):
+         self.traces = []
+         count = 0
+@@ -409,8 +378,6 @@
+         self.column_labels[self.LOAD] = 'Load [lbf]'
+         self.column_labels[self.STROKE] = 'Stroke [in]'
+ 
+-    def get_zl(self):
+-        return self.ZL
+     def get_zl_trace(self): return self.traces[self.ZL]
+     def get_zl_data(self): return self.traces[self.ZL].get_data()
+ 
+@@ -439,15 +406,16 @@
+         #!!! Please be patient.
+ 
+         if gage_length_in != 0: #!!! better way than sentinel value? 
+-            self.set_gage_length_in(gage_length_in)
++            self.gage_length_in = gage_length_i
+ 
+         for mfn in measurement_files:
+             for specimen in mfn.specimens:
+                 if filename.find(specimen.stl_id) != -1:
+-                    print filename, 'appears to have a measurement file entry:',
++                    print filename, 
++                    print 'appears to have a measurement file entry:',
+                     print specimen
+-                    self.set_has_measurement_file(True)
+-                    self.set_cs_area_in2(specimen.area)
++                    self.has_measurement_file = True
++                    self.cs_area_in2 = specimen.area
+ 
+         picturename = plot_time_disp_load(self, '-raw', 0, 1, 0.1, 1)
+         shutil.move(picturename, os.path.join(image_path, picturename))
+@@ -459,7 +427,7 @@
+         self.traces[self.STROKE].set_label('Stroke [in]') #!!!
+         self.traces[self.LOAD].set_label('Load [lbf]') #!!!
+ 
+-        print 'The number of lines is:', self.get_number_of_lines()
++        print 'The number of lines is:', self.number_of_lines
+ 
+         # Get an initial estimate of the preload 
+         # from the first N_POINTS_FOR_EST points. 
+@@ -468,22 +436,22 @@
+ 
+         # Determine the failure point. 
+         test_end = self.find_end()
+-        if self.get_load_drop_line() < self.get_number_of_lines() - 1:
+-            print 'Load drop found at line:', self.get_load_drop_line()
++        if self.load_drop_line < self.number_of_lines - 1:
++            print 'Load drop found at line:', self.load_drop_line
+ 
+-        print 'The max area occurs at line:', self.get_area_end_line()
+-        print 'The 95% stroke value is at line:', self.get_end_of_stroke_line()
++        print 'The max area occurs at line:', self.area_end_line
++        print 'The 95% stroke value is at line:', self.end_of_stroke_line
+ 
+         print 'The end of the test is line:', test_end
+         print 'The end of the test is time:', self.get_time_data()[test_end] #!!! [test_end] is curious
+ 
+         # Get the load shift from the post failure region. 
+-        if self.get_area_end_line() < 0.99 * self.get_number_of_lines():
+-            test_end = max([test_end, self.get_area_end_line()])
+-        postload_line = int(test_end + 0.2 * (self.get_number_of_lines() - test_end))
++        if self.area_end_line < 0.99 * self.number_of_lines:
++            test_end = max([test_end, self.area_end_line])
++        postload_line = int(test_end + 0.2 * (self.number_of_lines - test_end))
+         postload = self.find_postload(postload_line)
+ 
+-        if ((test_end >= 0.99 * self.get_number_of_lines() and leadave != 0)
++        if ((test_end >= 0.99 * self.number_of_lines and leadave != 0)
+         or postload > 0.5 * max(self.get_load_data())):
+             print 'no post-failure zero-load data, using initial trace'
+             loadshift = leadave
+@@ -497,14 +465,15 @@
+         for i in range(len(new_column)):
+             new_column[i] -= loadshift
+ 
+-        while self.get_raw_number_of_columns() < self.get_zl():
++        while self.number_of_columns < self.ZL:
+             self.append_column([], 'blank')
+ 
+         self.append_column(new_column, 'Zeroed Load [lbf]')
+ 
+         #Plot the data raw data and the blown up axis after zeroing the load
+ 
+-        picturename = plot_time_disp_zeroed_load(self, '-post-shift', 0, 1, 0.1, 1)
++        picturename = plot_time_disp_zeroed_load(
++            self, '-post-shift', 0, 1, 0.1, 1)
+         shutil.move(picturename, os.path.join(image_path, picturename))
+ 
+         picturename = plot_time_disp_zeroed_load(
+@@ -519,11 +488,11 @@
+ 
+         # Get and subtract out the initial displacement and time
+ 
+-        disp_start = self.get_stroke_trace().get_point(0)
++        disp_start = self.traces[self.STROKE].get_point(0)
+         print 'Start displacement is:', disp_start
+         self.traces[1].shift_column(-disp_start)
+ 
+-        time_start = self.get_time_trace().get_point(0)
++        time_start = self.traces[self.TIME].get_point(0)
+         print 'Start time is:', time_start
+         self.traces[0].shift_column(-time_start)
+ 
+@@ -538,9 +507,9 @@
+         if pulse_start > test_end:
+             print 'start > end, adjusting...'
+ 
+-##work in progress
++                ##work in progress
+ 
+-            test_end = self.get_number_of_lines()
++            test_end = self.number_of_lines
+ 
+         picturename = plot_rate_measure(self, pulse_start, test_end)
+         shutil.move(picturename, os.path.join(image_path, picturename))
+@@ -556,9 +525,9 @@
+ 
+         self.log_info(summary_file, test_end)
+ 
+-        if self.get_has_measurement_file() \
+-        and self.get_gage_length_in() != 0 \
+-        and self.get_cs_area_in2() != 0:
++        if self.has_measurement_file \
++        and self.gage_length_in != 0 \
++        and self.cs_area_in2 != 0:
+             new_column = self.get_stroke_data()
+             load_data = self.get_load_data()
+ 
+@@ -567,24 +536,25 @@
+ 
+             slope = ((load_data[slope_end] - load_data[slope_start])
+             /       (new_column[slope_end] - new_column[slope_start]))
+-            print 'modulus =', slope / self.get_cs_area_in2()
++            print 'modulus =', slope / self.cs_area_in2
+             intercept = new_column[slope_start]-load_data[slope_start] / slope
+             print 'intercept =', intercept
+ 
+             for i in range(len(new_column)):
+-                new_column[i] = (new_column[i]-intercept) / self.get_gage_length_in()
++                new_column[i] = (new_column[i]-intercept) / self.gage_length_in
+             self.append_column(new_column, 'Nominal Strain [in/in]')
+-            nom_strain = len(self.get_traces_raw())-1
++            nom_strain = len(self.traces)-1
+ 
+-            new_column = self.get_zl_data()
++            new_column = self.ZL
+             for i in range(len(new_column)):
+-                new_column[i] /= self.get_cs_area_in2()
++                new_column[i] /= self.cs_area_in2
+             self.append_column(new_column, 'Stress [psi]')
+-            psi = len(self.get_traces_raw()) - 1
++            psi = len(self.traces) - 1
+ 
+             test_end = self.find_neg(test_end)
+ 
+-            picturename = plot_stress_strain(self, psi, nom_strain, 0, test_end)
++            picturename = plot_stress_strain(
++                self, psi, nom_strain, 0, test_end)
+             shutil.move(picturename, os.path.join(image_path, picturename))
+ 
+ class DataTrace:
+diff -Naur reduce-2.2.2-jep06/HISTORY reduce-2.2.2-jep07/HISTORY
+--- reduce-2.2.2-jep06/HISTORY	2011-07-26 11:33:48.322502605 -0400
++++ reduce-2.2.2-jep07/HISTORY	2011-07-26 12:24:08.508533726 -0400
+@@ -1,3 +1,12 @@
++2011-07-26 reduce-2.2.2-jep07 James Prior
++
++    dataFile.py
++
++        Eliminated some get_*() and set_*() method calls by 
++        converting them to direct attribute references, 
++        since the moved code is now in a method of the object 
++        that has the data. 
++
+ 2011-07-26 reduce-2.2.2-jep06 James Prior
+ 
+     rlo.py and dataFile.py
+diff -Naur reduce-2.2.2-jep06/MD5SUM reduce-2.2.2-jep07/MD5SUM
+--- reduce-2.2.2-jep06/MD5SUM	2011-07-26 11:34:03.246314988 -0400
++++ reduce-2.2.2-jep07/MD5SUM	2011-07-26 12:27:07.846279146 -0400
+@@ -1,6 +1,6 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-9b980606a398d4a176d13b9397095e4e  dataFile.py
+-3e27d4fc726871e17d8c22bb5c97e775  HISTORY
++4394f051df9e558d9ffc6c54dc6b44e2  dataFile.py
++2f1db24b01ed522a0f86796ace7ddbc7  HISTORY
+ 83fc2d8b27267835cb5aaa38122323c7  measurementFile.py
+ 82261669a64efc2dcfd6ae421eb7053f  reducePlot.py
+ d90187ee7bc7ce5afa79821af06df9f4  rlo.py

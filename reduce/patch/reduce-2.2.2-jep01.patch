@@ -1,0 +1,1512 @@
+diff -Naur reduce-2.2.2/AUTHORS reduce-2.2.2-jep01/AUTHORS
+--- reduce-2.2.2/AUTHORS	1969-12-31 19:00:00.000000000 -0500
++++ reduce-2.2.2-jep01/AUTHORS	2011-07-23 11:58:24.000000000 -0400
+@@ -0,0 +1,8 @@
++Bryan Harris brywilharris at gmail dot com
++
++   original author; current maintainer
++
++James Prior echo 'jep5678@columbus.rr.com' | sed -e "s/`echo 2*17*167 | bc`/`echo 2*2*50101 | bc`/"
++
++   misecellaneous bug fixes and refactorings
++
+diff -Naur reduce-2.2.2/dataFile.py reduce-2.2.2-jep01/dataFile.py
+--- reduce-2.2.2/dataFile.py	2011-07-23 10:57:48.000000000 -0400
++++ reduce-2.2.2-jep01/dataFile.py	2011-07-23 22:08:06.428319064 -0400
+@@ -29,28 +29,23 @@
+     return line
+         
+ class dataFile:
+-    Has_Measurement_File = False
+-    TIME     =  0
+-    STROKE   =  1
+-    LOAD     =  2
++    has_measurement_file = False
++    TIME, STROKE, LOAD = range(3) #!!! is there a better way of associating these enumerated types with their use? 
+     column_labels=[]
+-    Specimen_ID = "STL xxx-xxx"
+     Test_Temp_F = 32.0
+     Test_Temp_C = 0.0
+     Machine_Rate = 0.0
+     Machine_Rate_m = 0.0
+     Machine_Rate_in = 0.0
+-    Width_in = 0.0
+-    Thickness_in = 0.0
+-    CS_Area_in2 = 0.0
++    cs_area_in2 = 0.0
+     Width_mm = 0.0
+     Thickness_mm = 0.0
+     CS_Area_mm2 = 0.0
+-    Gage_Length_in = 0.0
++    gage_length_in = 0.0
+     Gage_Length_mm = 0.0
+-    Load_Drop_Line = 0
+-    Area_End_Line = 0
+-    End_Of_Stroke_Line = 0
++    load_drop_line = 0
++    area_end_line = 0
++    end_of_stroke_line = 0
+     def __init__(self, *args, **kwargs):
+         self.textfile = "Default Datafile"
+         self.number_of_columns = 0
+@@ -61,13 +56,13 @@
+         
+     def __str__(self):
+         inventory = ""
+-        for trace in self.traces :
++        for trace in self.traces:
+             inventory += str(trace) + '\n'
+         return inventory
+     
+     def find_neg(self,start):
+         count = 0
+-        for line in self.getLoadData()[start:]:
++        for line in self.get_load_data()[start:]:
+             if float(line) < 0:
+                 return start+count
+             count += 1
+@@ -75,7 +70,7 @@
+     def find_load(self, zero_load):
+     
+         count = 0
+-        for line in self.getLoadData():
++        for line in self.get_load_data():
+             if float(line) > zero_load:
+                 return count
+             count += 1
+@@ -83,26 +78,52 @@
+     def find_load_pct(self, zero_pct):
+     
+         count = 0
+-        loadData = self.getLoadData()
++        loadData = self.get_load_data()
+         max_load = max(loadData)
+         zero_load = zero_pct * max_load
+-        for line in self.getLoadData():
++        for line in self.get_load_data():
+             if float(line) > zero_load:
+                 return count
+             count += 1
+          
++    def get_end_of_stroke_line(self):
++        return self.end_of_stroke_line
++    def get_area_end_line(self):
++        return self.area_end_line
++    def get_load_drop_line(self):
++        return self.load_drop_line
+     def getLoadTrace(self): return self.traces[self.LOAD]
+-    def getStrokeTrace(self): return self.traces[self.STROKE]
+-    def getTimeTrace(self): return self.traces[self.TIME]
+-    def getLoadData(self): return self.traces[self.LOAD].getData()
+-    def getStrokeData(self): return self.traces[self.STROKE].getData()
+-    def getTimeData(self): return self.traces[self.TIME].getData()
+-    def get_number_of_lines(self): return self.number_of_lines
++    def get_stroke_trace(self):
++        return self.traces[self.STROKE]
++    def get_time_trace(self):
++        return self.traces[self.TIME]
++    def get_load_data(self):
++        return self.traces[self.LOAD].getData()
++    def get_stroke_data(self):
++        return self.traces[self.STROKE].getData()
++    def get_time_data(self):
++        return self.traces[self.TIME].getData()
++    def get_number_of_lines(self):
++        return self.number_of_lines
++    def get_raw_number_of_columns(self): #!!! harmonize with get_number_of_columns
++        return self.number_of_columns
+     def get_number_of_columns(self, textfile):
+         return len(self.traces)
++    def get_cs_area_in2(self):
++        return self.cs_area_in2
++    def get_gage_length_in(self):
++        return self.gage_length_in
++    def get_has_measurement_file(self):
++        return self.has_measurement_file
++
++    def set_cs_area_in2(self,x):
++        self.cs_area_in2 = x
++    def set_gage_length_in(self,x):
++        self.gage_length_in = x
++    def set_has_measurement_file(self,x):
++        self.has_measurement_file = x
+     
+     def count_lines(self):
+-        
+         f = open(self.textfile, 'rU')
+         f.readline(),
+         try:
+@@ -124,15 +145,16 @@
+     
+     def get_column_lengths(self):
+          
+-        try :
++        try:
+             column_lengths=[]
+             f = open(self.textfile, 'rU')
+             f.readline(),
+             try:
+                 for trace in self.traces:
+                     if len(trace)>0:
+-                        column_lengths+=[len(trace)-1]
+-                    else : column_lengths+=[0]
++                        column_lengths += [len(trace)-1]
++                    else:
++                        column_lengths += [0]
+             finally:
+                 f.close()
+         except(IOError):
+@@ -157,7 +179,7 @@
+                 if index == 0:
+                     index += 1
+                     continue
+-                else :
++                else:
+                     if len(strip_term(line))>1:
+                         try:
+                             line=strip_term(line)+'\t'+str(column_data[index-1])+'\n'
+@@ -170,22 +192,23 @@
+             f.close()
+             g.close()
+         shutil.move(temp,self.textfile)
+-        self.number_of_columns+=1
++        self.number_of_columns += 1
+         
+         try:
+-            aTrace=dataTrace(self.textfile,self.number_of_columns-1,heading)
++            aTrace=dataTrace(self.textfile,self.number_of_columns - 1,heading)
+         except(IndexError):
+-            aTrace=dataTrace(self.textfile,self.number_of_columns-1,"")
++            aTrace=dataTrace(self.textfile,self.number_of_columns - 1,"")
+         self.traces+=[aTrace]
+         self.column_labels+=[aTrace.label]
+             
+         self.column_lengths+=[len(column_data)]
+         
++    def get_traces_raw(self): #!!! temp hack. must coordinate with get_traces()
++        return self.traces
+     def get_traces(self):
+         self.traces=[]
+-        #print "get_traces"
+         count = 0
+-        while True :
++        while True:
+             try:
+                 trace=dataTrace(self.textfile,count,self.column_labels[count])
+             except(IndexError):
+@@ -205,8 +228,8 @@
+     
+     def find_start(self,loadpct,strokepct):
+         
+-        load = self.getLoadData()
+-        stroke = self.getStrokeData()
++        load = self.get_load_data()
++        stroke = self.get_stroke_data()
+         
+         loadlinenumber = 0
+         strokelinenumber = 0
+@@ -214,28 +237,30 @@
+         maxload = max(load)
+         maxstroke = max(stroke)
+         ## look for the beginning of the load pulse
+-        for each_load in load :
++        for each_load in load:
+             loadlinenumber += 1
+-            if (each_load) > loadpct*maxload : 
++            if (each_load) > loadpct*maxload: 
+                 #print loadlinenumber, each_load
+                 break
+         ## look for the knee in the displacement curve
+-        for each_stroke in stroke :
++        for each_stroke in stroke:
+             strokelinenumber +=1
+-            if (each_stroke > strokepct * maxstroke) : 
++            if each_stroke > strokepct * maxstroke: 
+                 #print strokelinenumber, each_stroke
+                 break
+         return max([loadlinenumber,strokelinenumber])
+ 
+     def find_preload(self,size):
+         
+-        array = self.getLoadData()
+-        if len(array) > size : return self.find_average(array[:size])
+-        else : return self.find_average(array)
++        array = self.get_load_data()
++        if len(array) > size:
++            return self.find_average(array[:size])
++        else:
++            return self.find_average(array)
+         
+     def find_postload(self,start):
+         
+-        array = self.getLoadData()
++        array = self.get_load_data()
+     
+         return self.find_average(array[start:])
+     
+@@ -243,17 +268,18 @@
+         
+         count = 0.0
+         sum = 0.0
+-        for number in array :
++        for number in array:
+             count += 1.0
+             sum += number
+         if count>0:
+             return sum/count
+-        else : return 0
++        else:
++            return 0
+     
+     def find_end(self):
+-        time = self.getTimeData()
+-        disp = self.getStrokeData()
+-        load = self.getLoadData()
++        time = self.get_time_data()
++        disp = self.get_stroke_data()
++        load = self.get_load_data()
+     
+         #calculate end based on load drop
+         ld_count = 0
+@@ -265,34 +291,36 @@
+             e = load[ld_count+dfraction]
+             ld_count += 1
+             pprime.append(d-e)
+-            #if ld_count<14000:print ld_count, d-e
++            #if ld_count < 14000:print ld_count, d-e
+         #print "ld_count",ld_count
+         ld_count = 0
+         pprime_max = max(pprime)
+         #print "pprime", pprime
+         #print "pprime_max" ,pprime_max
+         
+-        for each in pprime[:-1] :
++        for each in pprime[:-1]:
+             ld_count += 1
+             #print "ld_count", ld_count
+             #print "each_pprime",each
+-            if each > .99 * pprime_max : break
++            if each > .99 * pprime_max:
++                break
+         if ld_count>=(dlength-dfraction-5):
+             ld_count=dlength
+ 
+         #calculate end based on end of stroke
+         maxdisp = max(disp)
+         stroke_count = 0
+-        for each in disp :
++        for each in disp:
+             stroke_count += 1
+-            if each > .95 * maxdisp : break
++            if each > .95 * maxdisp:
++                break
+ 
+         #calculate end based on area under curve
+         area = 0
+         maxarea = 0
+         deltat = time[2] - time[1]
+         count = 0
+-        for each_load in load[:-21] :
++        for each_load in load[:-21]:
+             count += 1
+             deltaA = (load[count]+each_load)/2 * deltat
+             maxarea=max(area,maxarea)
+@@ -301,50 +329,47 @@
+             
+         area_count = 0
+         area2 = 0
+-        for each_load in load[:-1] :
++        for each_load in load[:-1]:
+             area_count += 1
+             area2 += (load[area_count]+each_load)/2 * deltat
+             #print "area_count",area_count,"area",area,"area2", area2
+-            if ((maxarea - area2) < .015*area) : 
++            if maxarea - area2 < .015 * area: 
+                 break
+-        for each_load in load[area_count:-1] :
+-            if each_load>0 :
++        for each_load in load[area_count:-1]:
++            if each_load > 0:
+                 area_count += 1
+-            else :
++            else:
+                 break
+ 
+-        self.Load_Drop_Line = ld_count
+-        #print self.Load_Drop_Line
+-        self.Area_End_Line = area_count
+-        #print self.Area_End_Line
+-        self.End_Of_Stroke_Line = stroke_count
+-        #print self.End_Of_Stroke_Line
++        self.load_drop_line = ld_count
++        self.area_end_line = area_count
++        self.end_of_stroke_line = stroke_count
+                
+         #check for very low counts and return reasonable lowest value
+-        if area_count<10 and ld_count<10 and stroke_count<10 :
++        if area_count < 10 and ld_count < 10 and stroke_count < 10:
+             return size(load)
+-        elif ld_count<10 and stroke_count<10:
++        elif ld_count < 10 and stroke_count < 10:
+             return area_count
+-        elif area_count<10 and stroke_count<10:
++        elif area_count < 10 and stroke_count < 10:
+             return ld_count
+-        elif area_count<10 and ld_count<10:
++        elif area_count < 10 and ld_count < 10:
+             return stroke_count
+-        elif area_count<10 :
++        elif area_count < 10:
+             return min([ld_count, stroke_count])+1
+-        elif ld_count<10 :
++        elif ld_count < 10:
+             return min([area_count, stroke_count])+1
+-        elif stroke_count<10 :
++        elif stroke_count < 10:
+             return min([area_count, ld_count])+1
+         else:
+             return min([area_count, ld_count, stroke_count])+1
+         
+     def find_rate(self,pulse_start,pulse_end):
+-        time = self.getTimeData()
+-        disp = self.getStrokeData()
+-        dispsum=0
+-        timesum=0
++        time = self.get_time_data()
++        disp = self.get_stroke_data()
++        dispsum = 0
++        timesum = 0
+         for i in range(pulse_end-pulse_start):
+-            if i>0 : 
++            if i > 0: 
+                 dispsum+=(disp[pulse_start+i]-disp[pulse_start+i-1])
+                 timesum+=(time[pulse_start+i]-time[pulse_start+i-1])
+         rate=dispsum/timesum
+@@ -353,21 +378,15 @@
+     
+         
+ class dataFile_SL(dataFile):
+-    BLANK1   =  3
+-    BLANK2   =  4
+-    BLANK3   =  5
+-    ZL       =  6
+-    NOM_STRAIN   =  7
+-    PSI      =  8
+-    KSI      =  9
+-    MPA      = 10
++    ZL = 6 #!!! need better name for this constant !!! value is suspect also
++
+     def __init__(self, name, *args, **kwargs):
+         dataFile.__init__(self, *args, **kwargs)
+         self.textfile=name
+         self.traces=[dataTrace(self.textfile,0,""),dataTrace(self.textfile,1,""),dataTrace(self.textfile,2,"")]
+         self.column_labels=[]
+         self.traces=self.get_traces()
+-        self.number_of_columns=self.get_number_of_columns(self.textfile)
++        self.number_of_columns = self.get_number_of_columns(self.textfile)
+         self.number_of_lines=self.count_lines()
+         self.filebase=os.path.splitext(self.textfile)[0]
+         self.extension=os.path.splitext(self.textfile)[1]
+@@ -375,8 +394,10 @@
+         self.column_labels[self.LOAD]="Load [lbf]"
+         self.column_labels[self.STROKE]="Stroke [in]"
+     
++    def get_zl(self):
++        return self.ZL
+     def getZLTrace(self): return self.traces[self.ZL]
+-    def getZLData(self): return self.traces[self.ZL].getData()
++    def get_zl_data(self): return self.traces[self.ZL].getData()
+     
+     def log_info(self, logfile, end_line):
+         print >>logfile, '%s\t%s\t%s' % (
+@@ -396,7 +417,8 @@
+         self.length=self.getLength()
+         if label == "":
+             self.label=self.getLabel()
+-        else : self.label=label
++        else:
++            self.label=label
+         
+     def __len__(self):
+         return self.getLength()
+@@ -433,13 +455,13 @@
+             firstLine=f.readline().split('\t')
+             if len(firstLine)>self.column:
+                 self.label=firstLine[self.column].strip()
+-            else :
++            else:
+                 self.label="default no-label"
+-        else :
++        else:
+             self.label="default no-file"
+         return self.label
+     
+-    def setLabel(self, label):
++    def set_label(self, label):
+         
+         self.label=label.strip()
+         return self.label
+@@ -452,12 +474,12 @@
+             reader = csv.reader(f, delimiter='\t')
+             data = []
+ 
+-            skip=True
++            is_first_time = True
+             for line in reader:
+                 #words = line.split('\t')
+                 #words = self.tdd_split(line)
+-                if skip == True :
+-                    skip = False
++                if is_first_time:
++                    is_first_time = False
+                     continue
+                 if len(line)>self.column and line[self.column] != "":
+                     try:
+@@ -486,10 +508,10 @@
+     def get_point(self, row):
+         count = 0
+         for word in self.getData():
+-            if count == row :
++            if count == row:
+                 return float(word)
+             count += 1
+-        return 1/0
++        return 1/0 #!!! ???
+     
+     def shift_column(self, shift):
+     
+@@ -506,7 +528,7 @@
+                 writer.writerow(line)
+                 firstline = False
+             else:
+-                try :
++                try:
+                     number = float(line[self.column])
+                     number += shift
+                     output_line = line[0:self.column]+[str(number)]+line[self.column+1:]
+diff -Naur reduce-2.2.2/HISTORY reduce-2.2.2-jep01/HISTORY
+--- reduce-2.2.2/HISTORY	2011-07-23 11:00:30.000000000 -0400
++++ reduce-2.2.2-jep01/HISTORY	2011-07-23 22:25:25.247259342 -0400
+@@ -1,4 +1,29 @@
+-2011-07-22 reduce-2.2.1-jep08
++2011-07-23 reduce-2.2.2-jep01 James Prior
++
++    rlo.py
++
++        Slight refactoring of t=Tee code. 
++        Flagged stuff for later attention with '!!!' in comments. 
++        Low level miscellaneous refactorings. 
++
++        Massive low level reformatting of all code in this module to 
++        mostly follow PEP 8 -- Style Guide for Python Code
++        http://www.python.org/dev/peps/pep-0008/
++        This also affected other modules, particularly for label names. 
++
++        Massive restructuring of code to call methods to access data 
++        of objects instead of directly accessing them. 
++        Initially, this makes the code uglier than it was. 
++        However, when the code that wanted to use internal data of 
++        ojects so much is moved into the class itself, 
++        the code will become simple and pretty. 
++        Until then things will look ugly. Please have patience. 
++
++    AUTHORS
++
++        Started practice of having this file. 
++
++2011-07-22 reduce-2.2.1-jep08 James Prior
+ 
+     rlo.py
+ 
+@@ -12,7 +37,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-22 reduce-2.2.1-jep07
++2011-07-22 reduce-2.2.1-jep07 James Prior
+ 
+     rlo.py
+ 
+@@ -27,7 +52,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-22 reduce-2.2.1-jep06
++2011-07-22 reduce-2.2.1-jep06 James Prior
+ 
+     rlo.py and dataFile.py
+ 
+@@ -37,7 +62,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-22 reduce-2.2.1-jep05
++2011-07-22 reduce-2.2.1-jep05 James Prior
+ 
+     rlo.py
+ 
+@@ -57,7 +82,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-21 reduce-2.2.1-jep04
++2011-07-21 reduce-2.2.1-jep04 James Prior
+ 
+     rlo.py
+ 
+@@ -69,7 +94,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-21 reduce-2.2.1-jep03
++2011-07-21 reduce-2.2.1-jep03 James Prior
+ 
+     rlo.py
+ 
+@@ -80,7 +105,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-21 reduce-2.2.1-jep02
++2011-07-21 reduce-2.2.1-jep02 James Prior
+ 
+     rlo.py
+ 
+@@ -91,7 +116,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-21 reduce-2.2.0-jep05
++2011-07-21 reduce-2.2.0-jep05 James Prior
+ 
+     rlo.py
+ 
+@@ -100,7 +125,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-21 reduce-2.2.0-jep04
++2011-07-21 reduce-2.2.0-jep04 James Prior
+ 
+     rlo.py
+ 
+@@ -114,7 +139,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-21 reduce-2.2.0-jep03
++2011-07-21 reduce-2.2.0-jep03 James Prior
+ 
+     rlo.py
+ 
+@@ -129,7 +154,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-21 reduce-2.2.0-jep02
++2011-07-21 reduce-2.2.0-jep02 James Prior
+ 
+     rlo.py
+ 
+@@ -167,7 +192,7 @@
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+ 
+-2011-07-21 reduce-2.2.0-jep01
++2011-07-21 reduce-2.2.0-jep01 James Prior
+ 
+     rlo.py
+ 
+diff -Naur reduce-2.2.2/MD5SUM reduce-2.2.2-jep01/MD5SUM
+--- reduce-2.2.2/MD5SUM	2011-07-23 11:00:30.000000000 -0400
++++ reduce-2.2.2-jep01/MD5SUM	2011-07-24 00:41:26.628656883 -0400
+@@ -1,7 +1,8 @@
+-70bca034e0a8199fb351dbd587ac3a8f  dataFile.py
+-a930d17bf6005ae0b785011f8d274785  HISTORY
+-8cdc0838a5533543846001ab66c4d695  measurementFile.py
+-063e9a94c143531bdd370d6e9b9fc85c  reducePlot.py
+-3da042243a29e3c40ec50f04907dbc39  rlo.py
++d22d26f5e12df29d258779afb9c24321  AUTHORS
++207d916314ab125cbaaf7f0faa7f8894  dataFile.py
++044f93d1c4589581c8e9e8939397a4da  HISTORY
++91acc8be006362d98b725b3125611ef2  measurementFile.py
++4b01ad4912fb606c4a20ba2d03503e0b  reducePlot.py
++c14657a7575e690b100fa2900f9403b7  rlo.py
+ 92f9899ed684652be377a18488d867da  setup.py
+ 39212773f9861e9e9c218a6cc3c8c40f  tee.py
+diff -Naur reduce-2.2.2/measurementFile.py reduce-2.2.2-jep01/measurementFile.py
+--- reduce-2.2.2/measurementFile.py	2011-07-23 10:44:32.000000000 -0400
++++ reduce-2.2.2-jep01/measurementFile.py	2011-07-23 18:41:41.000000000 -0400
+@@ -38,27 +38,27 @@
+         self.specimens = []
+         self.filename = name
+         self.book = xlrd.open_workbook(self.filename)
+-        for sheet in self.book.sheets() :
++        for sheet in self.book.sheets():
+             is_a_meas_sheet = True
+-            if (sheet.nrows == 0) :
++            if (sheet.nrows == 0):
+                 is_a_meas_sheet = False
+-            else :
+-                if sheet.row(0)[4].value.find("Measurement Sheet") == -1 : 
++            else:
++                if sheet.row(0)[4].value.find("Measurement Sheet") == -1: 
+                     is_a_meas_sheet = False
+                 if sheet.row(4)[0].value.find("Specimen ID") == -1:
+                     is_a_meas_sheet = False
+                 if sheet.row(4)[5].value.find("Specimen ID") == -1:
+                     is_a_meas_sheet = False
+-            if (is_a_meas_sheet == True) : 
++            if (is_a_meas_sheet == True): 
+                 #print sheet.name, "is a measurement sheet!"
+                 self.sheets.append(sheet) 
+         self.sheet_count = len(self.sheets)
+         #print "sheet_count:",self.sheet_count
+-        for sheet in self.sheets :
+-            for arow in self.name_rows :
+-                for acol in self.name_cols :
++        for sheet in self.sheets:
++            for arow in self.name_rows:
++                for acol in self.name_cols:
+                     acell = sheet.row(arow)[acol]
+-                    if acell.ctype == 1 : 
++                    if acell.ctype == 1: 
+                         acell = acell.value
+                         acell = acell.upper()
+                         acell = acell.replace("STL","")
+@@ -76,7 +76,7 @@
+     
+ class specRec:
+     import math
+-    stl_ID = ""
++    stl_id = ''
+     row = -1
+     column = -1
+     length = 0
+@@ -85,15 +85,17 @@
+     diameter = 0
+     area = 0
+     def __init__(self, name, row, column, sheet, *args, **kwargs):
+-        self.stl_ID = name
++        self.stl_id = name
+         self.row = row
+         self.column = column
+         self.getMeasurements(sheet)
+-        if self.width != 0 and self.thick != 0 : self.area = self.thick*self.width
+-        if self.diameter != 0 : self.area = self.diameter**2*math.pi/4
++        if self.width != 0 and self.thick != 0:
++            self.area = self.thick*self.width
++        if self.diameter != 0:
++            self.area = self.diameter**2*math.pi/4
+         
+     def __str__(self):
+-        return str(self.stl_ID)+ ", "+ str(self.row) + ", " + str(self.column)
++        return str(self.stl_id) + ', ' + str(self.row) + ', '+str(self.column)
+         
+     def getMeasurements(self,sheet):
+         self.getWidth(sheet)
+@@ -104,7 +106,7 @@
+     def getWidth(self, sheet):
+         for offset in (1,2,3):
+             if self.width == 0 and \
+-                sheet.row(self.row)[self.column+offset].value.lower().find("width") != -1 :
++                sheet.row(self.row)[self.column+offset].value.lower().find("width") != -1:
+                 self.width = sheet.row(self.row+4)[self.column+offset].value
+                 #print "Setting width to", self.width
+         return self.width
+@@ -112,7 +114,7 @@
+     def getThickness(self, sheet):
+         for offset in (1,2,3):
+             if self.thick == 0 and \
+-                sheet.row(self.row)[self.column+offset].value.lower().find("thickness") != -1 :
++                sheet.row(self.row)[self.column+offset].value.lower().find("thickness") != -1:
+                 self.thick = sheet.row(self.row+4)[self.column+offset].value
+                 #print "Setting thickness to", self.thick
+         return self.thick
+@@ -120,7 +122,7 @@
+     def getLength(self, sheet):
+         for offset in (1,2,3):
+             if self.length == 0 and \
+-                sheet.row(self.row)[self.column+offset].value.lower().find("length") != -1 :
++                sheet.row(self.row)[self.column+offset].value.lower().find("length") != -1:
+                 self.length = sheet.row(self.row+4)[self.column+offset].value
+                 #print "Setting length to", self.length
+         return self.length
+@@ -128,14 +130,14 @@
+     def getDiameter(self, sheet):
+         for offset in (1,2,3):
+             if self.diameter == 0 and \
+-                sheet.row(self.row)[self.column+offset].value.lower().find("diameter") != -1 :
++                sheet.row(self.row)[self.column+offset].value.lower().find("diameter") != -1:
+                 self.diameter = sheet.row(self.row+4)[self.column+offset].value
+                 #print "Setting diameter to", self.diameter
+         return self.diameter
+     
+-if __name__== '__main__' :
++if __name__== '__main__':
+     print sys.argv[1]
+     an_excel_file = measurementFile(sys.argv[1])
+     print an_excel_file
+     sheet1 = an_excel_file.book.sheet_by_index(0)
+-    print sheet1.name
+\ No newline at end of file
++    print sheet1.name
+diff -Naur reduce-2.2.2/reducePlot.py reduce-2.2.2-jep01/reducePlot.py
+--- reduce-2.2.2/reducePlot.py	2011-07-23 10:44:32.000000000 -0400
++++ reduce-2.2.2-jep01/reducePlot.py	2011-07-23 21:13:22.000000000 -0400
+@@ -27,7 +27,7 @@
+     interval=int(len(array)/points)
+     return(array[::interval])
+ 
+-def plot_time_disp_load(thisDataFile,extra_label,xmin_pct,xmax_pct,ymin_pct,ymax_pct):
++def plot_time_disp_load(f,extra_label,xmin_pct,xmax_pct,ymin_pct,ymax_pct):
+     '''
+     This plots the first 3 columns of an ascii file, 
+     assuming that the first column is time, second is displacement, 
+@@ -35,10 +35,10 @@
+     '''
+     #Get the filename without the (!3 digit!) extension and create a picture name based on that
+ 
+-    picturename=thisDataFile.filebase+"-time-stroke-load"+extra_label+".png"
+-    f = open(thisDataFile.textfile, 'rU')
+-    p.title("Time - Disp - Load"+'\n'+thisDataFile.filebase)
+-    p.plot(thisDataFile.getTimeData(),thisDataFile.getLoadData(),'b-',label='Load')
++    picturename=f.filebase+"-time-stroke-load"+extra_label+".png"
++    #!!! 2011-07-23 delete f line after a few days f = open(f.textfile, 'rU') #!!! f is never referenced. 
++    p.title("Time - Disp - Load"+'\n'+f.filebase)
++    p.plot(f.get_time_data(), f.get_load_data(), 'b-', label='Load')
+     p.ylabel("Load [lbf]")
+     p.legend(loc=2)
+     p.axhline(0, color='k')
+@@ -46,7 +46,7 @@
+     p.axis((xmin_pct*v[0],xmax_pct*v[1],ymin_pct*v[2],ymax_pct*v[3]))
+     p.twinx()
+ 
+-    p.plot(thisDataFile.getTimeData(),thisDataFile.getStrokeData(),'r--',label='Disp')
++    p.plot(f.get_time_data(), f.get_stroke_data(), 'r--', label='Disp')
+     v=p.axis()
+     p.axis((xmin_pct*v[0],xmax_pct*v[1],ymin_pct*v[2],ymax_pct*v[3]))
+     p.xlabel("Time [sec]")
+@@ -56,20 +56,20 @@
+     p.close('all')
+     return picturename
+ 
+-def plot_time_disp_zeroed_load(thisDataFile,extra_label,xmin_pct,xmax_pct,ymin_pct,ymax_pct):
++def plot_time_disp_zeroed_load(f,extra_label,xmin_pct,xmax_pct,ymin_pct,ymax_pct):
+     #Get the filename without the (!3 digit!) extension and create a picture name based on that
+ 
+-    picturename=thisDataFile.filebase+"-time-stroke-load"+extra_label+".png"
++    picturename=f.filebase+"-time-stroke-load"+extra_label+".png"
+ 
+-    p.title("Time - Disp - Load"+'\n'+thisDataFile.filebase)
+-    p.plot(thisDataFile.getTimeData(),thisDataFile.getZLData(),'b-',label='Load')
++    p.title("Time - Disp - Load"+'\n'+f.filebase)
++    p.plot(f.get_time_data(), f.get_zl_data(), 'b-', label='Load')
+     p.ylabel("Load [lbf]")
+     p.legend(loc=2)
+     p.axhline(0, color='k')
+     v=p.axis()
+     p.axis((xmin_pct*v[0],xmax_pct*v[1],ymin_pct*v[2],ymax_pct*v[3]))
+     p.twinx()
+-    p.plot(thisDataFile.getTimeData(),thisDataFile.getStrokeData(),'r--',label='Disp')
++    p.plot(f.get_time_data(), f.get_stroke_data(), 'r--', label='Disp')
+     v=p.axis()
+     p.axis((xmin_pct*v[0],xmax_pct*v[1],ymin_pct*v[2],ymax_pct*v[3]))
+     p.xlabel("Time [sec]")
+@@ -79,12 +79,12 @@
+     p.close('all')
+     return picturename
+ 
+-def plot_time_load(thisDataFile):
++def plot_time_load(f):
+     
+-    picturename=thisDataFile.filebase+"-time-load.png"
++    picturename=f.filebase+"-time-load.png"
+ 
+-    p.title("Time - Load"+'\n'+thisDataFile.filebase)
+-    p.plot(thisDataFile.getTimeData(),thisDataFile.getLoadData(),'k+',lw=2)
++    p.title("Time - Load"+'\n'+f.filebase)
++    p.plot(f.get_time_data(), f.get_load_data(), 'k+', lw=2)
+     v=p.axis()
+     p.axis((0,v[1],0,v[3]))
+     p.xlabel("Time [sec]")
+@@ -93,12 +93,12 @@
+     p.close('all')
+     return picturename
+ 
+-def plot_time_zeroed_load(thisDataFile):
++def plot_time_zeroed_load(f):
+     
+-    picturename=thisDataFile.filebase+"-time-load.png"
++    picturename=f.filebase+"-time-load.png"
+ 
+-    p.title("Time - Load"+'\n'+thisDataFile.filebase)
+-    p.plot(thisDataFile.getTimeData(),thisDataFile.getZLData(),'k+',lw=2)
++    p.title("Time - Load"+'\n'+f.filebase)
++    p.plot(f.get_time_data(), f.get_zl_data(), 'k+', lw=2)
+     v=p.axis()
+     p.axis((0,v[1],0,v[3]))
+     p.xlabel("Time [sec]")
+@@ -107,17 +107,17 @@
+     p.close('all')
+     return picturename
+ 
+-def plot_rate_measure(thisDataFile, start_line, end_line):
+-    time_trace = thisDataFile.getTimeData()
+-    stroke_trace = thisDataFile.getStrokeData()
++def plot_rate_measure(f, start_line, end_line):
++    time_trace = f.get_time_data()
++    stroke_trace = f.get_stroke_data()
+     
+-    picturename=thisDataFile.filebase+"-rate_measure.png"
+-    p.title("Time - Disp - Load"+'\n'+thisDataFile.filebase)
++    picturename=f.filebase+"-rate_measure.png"
++    p.title("Time - Disp - Load"+'\n'+f.filebase)
+     p.plot(decimate(time_trace[start_line:end_line], 500), \
+         decimate(stroke_trace[start_line:end_line], 500), \
+         'b-',label='Disp')
+     
+-    stroke_rate = thisDataFile.find_rate(start_line, end_line)
++    stroke_rate = f.find_rate(start_line, end_line)
+     fit_disp = []
+     stroke_offset = stroke_trace[start_line]-stroke_rate*time_trace[start_line]
+     time_points=decimate(time_trace[start_line:end_line], 10)
+@@ -131,9 +131,9 @@
+     p.legend(loc=2)
+ 
+     p.twinx()
+-    p.plot(decimate(time_trace[start_line:end_line], 500), \
+-        decimate(thisDataFile.getZLData()[start_line:end_line], 500), \
+-        'r--',label='Load')
++    p.plot(decimate(time_trace[start_line:end_line], 500),
++        decimate(f.get_zl_data()[start_line:end_line], 500),
++        'r--', label='Load')
+     v=p.axis()
+     p.axis((v[0],v[1],0,v[3]))
+     p.xlabel("Time [sec]")
+@@ -143,11 +143,11 @@
+     p.close('all')
+     return picturename
+ 
+-def plot_disp_load(thisDataFile):
++def plot_disp_load(f):
+     
+-    picturename=thisDataFile.filebase+"-stroke-load.png"
+-    p.title("Disp - Load"+'\n'+thisDataFile.filebase)
+-    p.plot(thisDataFile.getStrokeData(),thisDataFile.getLoadData(),'g-')
++    picturename=f.filebase+"-stroke-load.png"
++    p.title("Disp - Load"+'\n'+f.filebase)
++    p.plot(f.get_stroke_data(),f.get_load_data(),'g-')
+     v=p.axis()
+     p.axis((0,v[1],0,v[3]))
+     p.ylabel("Load [lbf]")
+@@ -156,11 +156,11 @@
+     p.close('all')
+     return picturename
+ 
+-def plot_disp_zeroed_load(thisDataFile):
++def plot_disp_zeroed_load(f):
+     
+-    picturename=thisDataFile.filebase+"-stroke-load.png"
+-    p.title("Disp - Load"+'\n'+thisDataFile.filebase)
+-    p.plot(thisDataFile.getStrokeData(),thisDataFile.getZLData(),'g-')
++    picturename=f.filebase+"-stroke-load.png"
++    p.title("Disp - Load"+'\n'+f.filebase)
++    p.plot(f.get_stroke_data(), f.get_zl_data(), 'g-')
+     v=p.axis()
+     p.axis((0,v[1],0,v[3]))
+     p.ylabel("Load [lbf]")
+@@ -169,22 +169,22 @@
+     p.close('all')
+     return picturename
+     
+-def plot_stress_strain(thisDataFile,stress,strain,start_line,end_line):
+-    picturename=thisDataFile.filebase+"-stress-strain.png"
+-    p.title("Stress - Nominal Strain"+'\n'+thisDataFile.filebase)
+-    strain_data=thisDataFile.traces[strain].getData()
++def plot_stress_strain(f,stress,strain,start_line,end_line):
++    picturename=f.filebase+"-stress-strain.png"
++    p.title("Stress - Nominal Strain"+'\n'+f.filebase)
++    strain_data=f.traces[strain].getData()
+     #print start_line
+     #print end_line
+     #print len(strain_data)
+     strain_data=strain_data[start_line:end_line]
+     #print len(strain_data)
+-    stress_data=thisDataFile.traces[stress].getData()
++    stress_data=f.traces[stress].getData()
+     stress_data=stress_data[start_line:end_line]
+     p.plot(strain_data,stress_data,'g-')
+     v=p.axis()
+     p.axis((0,v[1],0,v[3]))
+-    p.ylabel(thisDataFile.traces[stress].label)
+-    p.xlabel(thisDataFile.traces[strain].label)
++    p.ylabel(f.traces[stress].label)
++    p.xlabel(f.traces[strain].label)
+     p.savefig(picturename)
+     p.close('all')
+     return picturename
+diff -Naur reduce-2.2.2/rlo.py reduce-2.2.2-jep01/rlo.py
+--- reduce-2.2.2/rlo.py	2011-07-23 11:00:30.000000000 -0400
++++ reduce-2.2.2-jep01/rlo.py	2011-07-23 22:16:33.949938654 -0400
+@@ -36,103 +36,105 @@
+ from xlrd import *
+ 
+ '''
+-Reduces and plots a load-only time-stoke-load thisDataFile
++Reduces and plots a load-only time-stoke-load f
+ Input should be tab delimited data with the first two lines 
+ containing column names and units respectively.
+ '''
+-zero_load=10
+-if __name__ != '__main__':
+-    print >>sys.stderr, 'ERROR: The', __name__, 
+-    print >>sys.stderr, 'module is meant to be run only as the main module.  '
+-    sys.exit(os.EX_USAGE)
++N_POINTS_FOR_EST = 150
++
++zero_load = 10 # !!! variable or constant? might be modified in class dataFile.find_load_pct() Does this belong in this dataFile.py? 
+ 
+ def usage():
+-    print >>sys.stderr, "%s [-h] [--help]"% sys.argv[0]
++    print >>sys.stderr, '%s [-h] [--help]' % sys.argv[0]
+ 
+-opts=None
++if __name__ != '__main__':
++    print >>sys.stderr, 'ERROR: The', __name__,
++    print >>sys.stderr, 'module is meant to be run only as the main module.'
++    usage()
++    sys.exit(os.EX_USAGE)
+ 
+ try:
+-    opts, args=getopt.gnu_getopt(sys.argv[1:],'hn:t:g:',('help', 'passes=', 'threshold=' ,'gage='))
+-    passes = -1
++    opts, args = getopt.gnu_getopt(
++        sys.argv[1:], 'hn:t:g:', ('help', 'passes=', 'threshold=', 'gage='))
++    n_passes = -1
+     threshold = .5
+-    Gage_Length_in = 0
++    gage_length_in = 0
+     for o, a in opts:
+-        if o in ('-n','--passes'):
+-            passes=int(a)
++        if o in ('-n', '--passes'):
++            n_passes = int(a) #!!! this is not referenced anywhere
+         elif o in ('-h', '--help'):
+-            raise getopt.GetoptError("")
+-        elif o in ('-t','--threshold'):
+-            threshold=float(a)
+-        elif o in ('-g','--gage'):
+-            Gage_Length_in = float(a)
+-except getopt.GetoptError, info:
++            raise getopt.GetoptError('')
++        elif o in ('-t', '--threshold'):
++            threshold = float(a) #!!! this is not referenced anywhere
++        elif o in ('-g', '--gage'):
++            gage_length_in = float(a)
++except getopt.GetoptError, info: #!!! what is info? 
+     print info
+     usage()
+-    exit()
+-
+-# where am I?
+-base_path = os.getcwd() 
+-
+-# Writing to t writes all its listed files.  
+-t=Tee([
+-    sys.stdout, 
+-    open(os.path.join(base_path, 'script.log'), 'w')])
++    sys.exit(os.EX_USAGE)
+ 
+-# Here I am.
+-print >>t, 'base_path:', base_path 
++if False:
++    # !!! experiment: unsuccessful so far
++    # !!! Goal is for regular prints to to write to two files.  
++    # !!! To eliminate need for '>>t, '. 
++    real_stdout = sys.stdout
++    t = sys.stdout = Tee([real_stdout, open('script.log', 'w')])
++    print 'Hello world to both stdout and the log file'
++else:
++    # Printing to t writes to all its listed files.  
++    t = Tee([
++        sys.stdout,
++        open('script.log', 'w')])
+ 
+-# Where to put reduced data
+-reduce_path=os.path.join(base_path,"reduced")  
+-print >>t, 'reduce_path:', reduce_path  
++base_path = os.getcwd()
++print >>t, 'base_path:', base_path
+ 
+-# Where to put pretty pictures
+-image_path=os.path.join(reduce_path,"png") 
+-print >>t, 'image_path:', image_path
+-
+-# Create directories as needed. 
+-for directory in [reduce_path, image_path]:
+-    # Create directory only if needed. 
++def create_directory(directory):
++    # Create directory, but only if needed. 
+     if not os.access(directory, os.W_OK):
+         try:
+-            os.mkdir(directory) 
++            os.mkdir(directory)
+         except:
+             print >>sys.stderr, ('ERROR: Could not create %s directory. '
+                 % directory)
+-            sys.exit(os.EX_USAGE)
++            sys.exit(os.EX_CANTCREAT)
+         else:
+             print >>t, directory, 'created'
+ 
+     # Test for ability to write to directory. 
+     if not os.access(directory, os.W_OK):
+-        print >>sys.stderr, ('ERROR: Could not write to the %s directory.' 
++        print >>sys.stderr, ('ERROR: Could not write to the %s directory.'
+             % directory)
+-        sys.exit(os.EX_USAGE)
++        sys.exit(os.EX_IOERR)
++
++# reduce_path is name of directory to put reduced data in. 
++reduce_path = os.path.join(base_path, 'reduced')
++print >>t, 'reduce_path:', reduce_path
++create_directory(reduce_path)
+ 
+-# Where to generate measurement files
+-measurement_file_present=False 
+-meas_file_name = "measurements.csv"  
+-meas_file_path = os.path.join(base_path,meas_file_name)
+-print >>t, 'meas_file_path:', meas_file_path
++# image_path is name of directory to put pretty plot images in.  
++image_path = os.path.join(reduce_path, 'png')
++print >>t, 'image_path:', image_path
++create_directory(image_path)
+ 
+ summary_file_path = os.path.join(reduce_path, 'summary.dat')
+ print >>t, 'summary_file_path:', summary_file_path
+ summary_file = open(summary_file_path, 'w')
+ print >>summary_file, 'Specimen\tRate\tPeak Load'
+ 
+-working_files=[]
+-measurement_file_names=[]
+-measurement_files=[]
++working_files = []
++measurement_file_names = []
+ 
+ # Copy the text (*.txt) and Excel (*.xls) files into a working directory and 
+ # make separate lists of them.  
+-os.chdir(reduce_path)
++os.chdir(reduce_path) # !!! does this matter? is this needed? superfluous? try to eliminate. 
+ for filename in os.listdir(base_path):
+     sourcefile = os.path.join(base_path, filename)
+     destfile = os.path.join(reduce_path, filename)
+-    if filename.lower().endswith(".txt"):
++    if filename.lower().endswith('.txt'):
+         shutil.copyfile(sourcefile, destfile)
+         working_files.append(destfile)
+-    if filename.lower().endswith(".xls"):
++    if filename.lower().endswith('.xls'):
+         shutil.copyfile(sourcefile, destfile)
+         measurement_file_names.append(destfile)
+ 
+@@ -149,7 +151,7 @@
+     else:
+         return True
+ 
+-def hasNonFloat(s): # ^^^ what naming convention to use? 
++def has_non_float(s):
+     '''
+     Takes a single argument. 
+     Returns True if that argument has any non-floats; 
+@@ -160,14 +162,15 @@
+             return True
+     else:
+         return False
+-        
+-# Remove lines from working_files 
++
++# Remove lines from working_files.  
+ # that have anything that can not be interpreted as a float. 
++#!!! Consider doing this closer to where data is consumed. 
+ for filename in working_files:
+     srcfile = open(filename, 'rU')
+     dstfile = tempfile.NamedTemporaryFile(mode='w', delete=False)
+     for line in srcfile:
+-        if not hasNonFloat(line):
++        if not has_non_float(line):
+             dstfile.write(line)
+     dstfile.close()
+     srcfile.close()
+@@ -175,238 +178,193 @@
+ 
+ # go into the working file directory and create the summary file
+ 
+-os.chdir(reduce_path)
++os.chdir(reduce_path) # !!! does this matter? is this needed? superfluous? try to eliminate. 
+ 
+ #Start looking at the data files
+ 
+ print >>t, time.strftime('%a, %d %b %Y %H:%M:%S +0000', time.localtime())
+ print >>t, 'user:', os.times()[0], 's'
+-print >>t, 'system:', os.times()[1], ' s' 
++print >>t, 'system:', os.times()[1], ' s'
+ print >>t
+ 
+ print >>t, 'Measurement Files:'
+ print >>t
+ 
+-for meas_file_name in measurement_file_names :
++measurement_files = []
++for meas_file_name in measurement_file_names:
+     print >>t, meas_file_name
+     measurement_files.append(measFile(meas_file_name))
+-    
+-    
+-for foo in working_files :
+-
+-    #get the name of the next file
+-
+-    foo_name=os.path.basename(foo)
+-    print >>t, 'Analyzing:', foo_name
+-    
+-    
+-
+-    #plot the raw data and move the picture into out pictures directory
+-
+-    thisDataFile=dataFile_SL(foo_name)
+-    if Gage_Length_in != 0 : thisDataFile.Gage_Length_in = Gage_Length_in
+-    
+-    for mfn in measurement_files :
+-        for specimen in mfn.specimens :
+-            #print specimen
+-            if foo_name.find(specimen.stl_ID) != -1:
+-                print >>t, foo_name,
++
++for filename in map(os.path.basename, working_files):
++    print >>t, 'Analyzing:', filename
++
++    # Plot the raw data and move the picture to image_path directory.
++    f = dataFile_SL(filename)
++
++    #!!! the bazillion of f.get_*() and f.set_*() method calls below 
++    #!!! makes me think that the structure of following code is fundamentally 
++    #!!! awkward and should go into the class' code.
++    #!!! 
++    #!!! While I am converting following code to use method calls instead 
++    #!!! of directly accessing f's variables, the code will get ugly. 
++    #!!! After I figure out where the code really belongs, 
++    #!!! it will become much simpler (and pretty). 
++    #!!! 
++    #!!! Please be patient.
++
++    if gage_length_in != 0: #!!! better way than sentinel value? 
++        f.set_gage_length_in(gage_length_in)
++
++    for mfn in measurement_files:
++        for specimen in mfn.specimens:
++            if filename.find(specimen.stl_id) != -1:
++                print >>t, filename,
+                 print >>t, 'appears to have a measurement file entry:',
+                 print >>t, specimen
+-                thisDataFile.Has_Measurement_File = True
+-                thisDataFile.Thickness_in = specimen.thick
+-                thisDataFile.Width_in = specimen.width
+-                thisDataFile.Specimen_ID = "STL " + str(specimen.stl_ID)
+-
+-                thisDataFile.CS_Area_in2 = specimen.area
+-    
+-    picturename = plot_time_disp_load(thisDataFile,'-raw',0,1,0.1,1)
+-    shutil.move(picturename,os.path.join(image_path,picturename))
+-
+-
+-    picturename = plot_time_disp_load(thisDataFile,'_zerocheck',0,1,0.1,0.1)
+-    shutil.move(picturename,os.path.join(image_path,picturename))        
+-    
+-    thisDataFile.traces[thisDataFile.TIME].setLabel("Time [sec]")
+-    thisDataFile.traces[thisDataFile.STROKE].setLabel("Stroke [in]")
+-    thisDataFile.traces[thisDataFile.LOAD].setLabel("Load [lbf]")
++                f.set_has_measurement_file(True)
++                f.set_cs_area_in2(specimen.area)
++
++    picturename = plot_time_disp_load(f, '-raw', 0, 1, 0.1, 1)
++    shutil.move(picturename, os.path.join(image_path, picturename))
++
++    picturename = plot_time_disp_load(f, '_zerocheck', 0, 1, 0.1, 0.1)
++    shutil.move(picturename, os.path.join(image_path, picturename))
+ 
+-    #Count the number of rows        
+-    print >>t, 'The number of lines is:', thisDataFile.number_of_lines
++    f.traces[f.TIME].set_label('Time [sec]') #!!!
++    f.traces[f.STROKE].set_label('Stroke [in]') #!!!
++    f.traces[f.LOAD].set_label('Load [lbf]') #!!!
+ 
+-    #Get an initial estimate of the preload from the first 150 points.
++    print >>t, 'The number of lines is:', f.get_number_of_lines()
+ 
+-    leadave=thisDataFile.find_preload(150)
++    # Get an initial estimate of the preload 
++    # from the first N_POINTS_FOR_EST points. 
++    leadave = f.find_preload(N_POINTS_FOR_EST)
+     print >>t, 'The initial preload estimate is:', leadave
+ 
+-    #determine the failure point
++    # Determine the failure point. 
++    test_end = f.find_end()
++    if f.get_load_drop_line() < f.get_number_of_lines() - 1:
++        print >>t, 'Load drop found at line:', f.get_load_drop_line()
++
++    print >>t, 'The max area occurs at line:', f.get_area_end_line()
++    print >>t, 'The 95% stroke value is at line:', f.get_end_of_stroke_line()
+ 
+-    test_end=thisDataFile.find_end()
+-    if thisDataFile.Load_Drop_Line<thisDataFile.number_of_lines-1:
+-        print >>t, 'Load drop found at line:', thisDataFile.Load_Drop_Line
+-    
+-    print >>t, 'The max area occurs at line:', thisDataFile.Area_End_Line
+-    print >>t, 'The 95% stroke value is at line:',
+-    print >>t, thisDataFile.End_Of_Stroke_Line
+-    
+     print >>t, 'The end of the test is line:', test_end
+-    
+-    print >>t, 'The end of the test is time:',
+-    print >>t, thisDataFile.getTimeData()[test_end]
+-    
+-
+-    #get the load shift from the post failure region
+-
+-    
+-    
+-    if thisDataFile.Area_End_Line<0.99*thisDataFile.number_of_lines:
+-        test_end=max([test_end,thisDataFile.Area_End_Line])
+-    postload_line=int(test_end+0.2*(thisDataFile.number_of_lines-test_end))
+-    #print postload_line
+-    postload=thisDataFile.find_postload(postload_line)
+-    #print postload
+-    #print 0.5*max(thisDataFile.getLoadData())
+-    
+-    if ( (test_end >= (0.99 * thisDataFile.number_of_lines) and leadave != 0)
+-        or postload > 0.5 * max(thisDataFile.getLoadData())): 
++    print >>t, 'The end of the test is time:', f.get_time_data()[test_end] #!!! [test_end] is curious
++
++    # Get the load shift from the post failure region. 
++    if f.get_area_end_line() < 0.99 * f.get_number_of_lines():
++        test_end = max([test_end, f.get_area_end_line()])
++    postload_line = int(test_end + 0.2 * (f.get_number_of_lines() - test_end))
++    postload = f.find_postload(postload_line)
++
++    if ((test_end >= 0.99 * f.get_number_of_lines() and leadave != 0)
++    or postload > 0.5 * max(f.get_load_data())):
+         print >>t, 'no post-failure zero-load data, using initial trace'
+         loadshift = leadave
+-    else :
++    else:
+         loadshift = postload
+         print >>t, 'Load offset from post failure data:', postload
+ 
+-    #Zero the load trace
++    #Zero the load trace #!!!
+ 
+-    
+-    new_column=thisDataFile.getLoadData()
++    new_column = f.get_load_data()
+     for i in range(len(new_column)):
+-        new_column[i]-=loadshift
+-        
+-    while thisDataFile.number_of_columns < thisDataFile.ZL:
+-        thisDataFile.append_column([], "blank")
+-    
+-    thisDataFile.append_column(new_column, "Zeroed Load [lbf]")
+-    
+-    #Plot the data raw data and the blown up axis after zeroing the load
++        new_column[i] -= loadshift
+ 
+-    picturename = plot_time_disp_zeroed_load(thisDataFile,'-post-shift',0,1,0.1,1)
+-    shutil.move(picturename,os.path.join(image_path,picturename)) 
+-    
+-    picturename = plot_time_disp_zeroed_load(thisDataFile,'_zerocheck-post-shift',0,1,0.1,0.1)
+-    shutil.move(picturename,os.path.join(image_path,picturename)) 
+-    
++    while f.get_raw_number_of_columns() < f.get_zl():
++        f.append_column([], 'blank')
+ 
+-    # Find a new, better end point based on the shifted data
++    f.append_column(new_column, 'Zeroed Load [lbf]')
+ 
+-    test_end=thisDataFile.find_end()
+-    print >>t, 'The failure line is:', test_end
++    #Plot the data raw data and the blown up axis after zeroing the load
+ 
++    picturename = plot_time_disp_zeroed_load(f, '-post-shift', 0, 1, 0.1, 1)
++    shutil.move(picturename, os.path.join(image_path, picturename))
+ 
+-    # If there is a post failure region, cut it off.
++    picturename = plot_time_disp_zeroed_load(f, '_zerocheck-post-shift', 0, 1, 0.1, 0.1)
++    shutil.move(picturename, os.path.join(image_path, picturename))
+ 
+-    
++    # Find a new, better end point based on the shifted data
++    test_end = f.find_end()
++    print >>t, 'The failure line is:', test_end
++
++    # If there is a post failure region, cut it off. !!!?
+ 
+     # Get and subtract out the initial displacement and time
+ 
+-    disp_start = 0.0
+-    disp_start=thisDataFile.getStrokeTrace().get_point(0)
++    disp_start = f.get_stroke_trace().get_point(0)
+     print >>t, 'Start displacement is:', disp_start
+-    thisDataFile.traces[1].shift_column(-disp_start)
+-    
+-    time_start = 0.0
+-    time_start = thisDataFile.getTimeTrace().get_point(0)
+-    print >>t, 'Start time is:', time_start
+-    thisDataFile.traces[0].shift_column(-time_start)
+-    
+-
+-    # Plot the time and displcaement shifted data
++    f.traces[1].shift_column(-disp_start)
+ 
+-    picturename = plot_time_zeroed_load(thisDataFile)
+-    shutil.move(picturename,os.path.join(image_path,picturename))
+-   
++    time_start = f.get_time_trace().get_point(0)
++    print >>t, 'Start time is:', time_start
++    f.traces[0].shift_column(-time_start)
+ 
+-    #Cut off the initial, pre-test trace and plot the result     
++    # Plot the time and displacement shifted data. 
++    picturename = plot_time_zeroed_load(f)
++    shutil.move(picturename, os.path.join(image_path, picturename))
+ 
+-    pulse_start=thisDataFile.find_start(0.4,0.05)
++    # Cut off the initial, pre-test trace and plot the result. 
++    pulse_start = f.find_start(0.4, 0.05)
+     print >>t, 'The start line is:', pulse_start
+-    
+-    if pulse_start>test_end :
++
++    if pulse_start > test_end:
+         print >>t, 'start > end, adjusting...'
+ 
+ ##work in progress
+ 
++        test_end = f.get_number_of_lines()
+ 
+-        test_end=thisDataFile.number_of_lines
+-    picturename = plot_rate_measure(thisDataFile, pulse_start, test_end)
+-    shutil.move(picturename,os.path.join(image_path,picturename)) 
+-    
+-
+-    #Get the new time and displacement zeroes, subtract them, and plot the result
+-
+-    
+-    picturename = plot_time_disp_zeroed_load(thisDataFile,'-reduced',0,1,0,1)
+-    new_picturename=picturename[:-4] + ".png"
+-    shutil.move(picturename,new_picturename)
+-    shutil.move(new_picturename,os.path.join(image_path,picturename))
+-
+-
+-    #Plot the final load-stroke curve
+-
+-    picturename = plot_disp_zeroed_load(thisDataFile)
+-    shutil.move(picturename,os.path.join(image_path,picturename))
+-    
+-    thisDataFile.log_info(summary_file, test_end)
+-    
+-    if thisDataFile.Has_Measurement_File :
+-        if thisDataFile.Gage_Length_in !=0 and thisDataFile.CS_Area_in2 != 0:
+-            
+-            new_column=thisDataFile.getStrokeData()
+-            load_data=thisDataFile.getLoadData()
+-            
+-            slope_start = thisDataFile.find_load_pct(0.4)
+-            slope_end = thisDataFile.find_load_pct(0.5)
+-
+-            slope = (load_data[slope_end] - load_data[slope_start])/\
+-                    (new_column[slope_end] - new_column[slope_start])
+-            print >>t, 'modulus =', slope/thisDataFile.CS_Area_in2
+-            intercept = new_column[slope_start]-load_data[slope_start]/slope
+-            print >>t, 'intercept =', intercept
+-
+-
+-            for i in range(len(new_column)):
+-                new_column[i]=(new_column[i]-intercept)/thisDataFile.Gage_Length_in
+-            thisDataFile.append_column(new_column,"Nominal Strain [in/in]")
+-            thisDataFile.NOM_STRAIN = len(thisDataFile.traces)-1
+-            
+-            new_column=thisDataFile.getZLData()
+-            for i in range(len(new_column)):
+-                new_column[i]=new_column[i]/thisDataFile.CS_Area_in2
+-            thisDataFile.append_column(new_column,"Stress [psi]")
+-            thisDataFile.PSI = len(thisDataFile.traces)-1
+-
+-            test_end=thisDataFile.find_neg(test_end)
+-
+-            picturename = \
+-            plot_stress_strain(thisDataFile,thisDataFile.PSI,thisDataFile.NOM_STRAIN, \
+-            0,test_end)
+-            shutil.move(picturename,os.path.join(image_path,picturename)) 
+-            
++    picturename = plot_rate_measure(f, pulse_start, test_end)
++    shutil.move(picturename, os.path.join(image_path, picturename))
+ 
++    # Get the new time and displacement zeroes, subtract them, 
++    # and plot the result. 
++    picturename = plot_time_disp_zeroed_load(f, '-reduced', 0, 1, 0, 1)
++    shutil.move(picturename, os.path.join(image_path, picturename))
++
++    # Plot the final load-stroke curve. 
++    picturename = plot_disp_zeroed_load(f)
++    shutil.move(picturename, os.path.join(image_path, picturename))
++
++    f.log_info(summary_file, test_end)
++
++    if f.get_has_measurement_file() \
++    and f.get_gage_length_in() != 0 \
++    and f.get_cs_area_in2() != 0:
++        new_column = f.get_stroke_data()
++	load_data = f.get_load_data()
++
++	slope_start = f.find_load_pct(0.4)
++	slope_end = f.find_load_pct(0.5)
++
++	slope = ((load_data[slope_end] - load_data[slope_start])
++        /       (new_column[slope_end] - new_column[slope_start]))
++	print >>t, 'modulus =', slope / f.get_cs_area_in2()
++	intercept = new_column[slope_start]-load_data[slope_start] / slope
++	print >>t, 'intercept =', intercept
++
++	for i in range(len(new_column)):
++	    new_column[i] = (new_column[i]-intercept) / f.get_gage_length_in()
++	f.append_column(new_column, 'Nominal Strain [in/in]')
++	nom_strain = len(f.get_traces_raw())-1
++
++	new_column = f.get_zl_data()
++	for i in range(len(new_column)):
++	    new_column[i] /= f.get_cs_area_in2()
++	f.append_column(new_column, 'Stress [psi]')
++	psi = len(f.get_traces_raw()) - 1
+ 
+-    #Calculate stuff and save it to the summary file
++	test_end = f.find_neg(test_end)
++
++	picturename = plot_stress_strain(f, psi, nom_strain, 0, test_end)
++	shutil.move(picturename, os.path.join(image_path, picturename))
+ 
+-    #thisDataFile.log_info(summary_file,test_end)
+-    
+     print >>t, time.strftime('%a, %d %b %Y %H:%M:%S +0000', time.localtime())
+     print >>t, 'user:', os.times()[0], 's'
+     print >>t, 'system:', os.times()[1], 's'
+     print >>t
+-    
+-
+-    #(end of analysis loop)
+-
+-
+-#Were all done, close the summary file
+ 
+ summary_file.close()
+ 

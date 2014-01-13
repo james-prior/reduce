@@ -1,4 +1,5 @@
 #"Copyright 2010 Bryan Harris"
+# Copyright 2011 James Prior
 #
 #This file is part of Reduce.
 #
@@ -18,124 +19,108 @@
 import os
 import xlrd
 import tempfile
-import shutil
 
-class measFile:
-    filename = ""
-    description = ""
-    sponsor = ""
-    tech = ""
-    acct_number = ""
-    date = ""
+import math
+
+class MeasFile:
+    filename = ''
+    if False: #!!! unused variablles, consider deleting them. 
+        description = ''
+        sponsor = ''
+        tech = ''
+        acct_number = ''
+        date = ''
     sheets = []
-    specimens = []
-    sheet_count = 0
-    book = ""
-    name_rows = (5,10,15,20,25,30,35,40,45,50)
-    name_cols = (0,5)
-    def __init__(self, name, *args, **kwargs):
+    specimens = [] #!!! the accumulated specimens are never used, so why bother? 
+    book = ''
+    name_rows = range(5, 50+1, 5) #!!! magice numbers
+    name_cols = range(0, 5+1, 5) #!!! magice numbers
+
+    def __init__(self, filename):
         self.sheets = []
         self.specimens = []
-        self.filename = name
+        self.filename = filename
         self.book = xlrd.open_workbook(self.filename)
-        for sheet in self.book.sheets() :
-            is_a_meas_sheet = True
-            if (sheet.nrows == 0) :
-                is_a_meas_sheet = False
-            else :
-                if sheet.row(0)[4].value.find("Measurement Sheet") == -1 : 
-                    is_a_meas_sheet = False
-                if sheet.row(4)[0].value.find("Specimen ID") == -1:
-                    is_a_meas_sheet = False
-                if sheet.row(4)[5].value.find("Specimen ID") == -1:
-                    is_a_meas_sheet = False
-            if (is_a_meas_sheet == True) : 
-                #print sheet.name, "is a measurement sheet!"
-                self.sheets.append(sheet) 
-        self.sheet_count = len(self.sheets)
-        #print "sheet_count:",self.sheet_count
-        for sheet in self.sheets :
-            for arow in self.name_rows :
-                for acol in self.name_cols :
+        for sheet in self.book.sheets():
+            and sheet.row(0)[4].value.find('Measurement Sheet') != -1
+            and sheet.row(6)[0].value.find('Specimen ID') != -1
+            and sheet.row(6)[5].value.find('Specimen ID') != -1):
+                # The sheet is a measurement sheet. 
+                # print sheet.name, 'is a measurement sheet!'
+                self.sheets.append(sheet)
+        #print 'number of sheets:', self.len(self.sheets)
+        for sheet in self.sheets:
+            for arow in self.name_rows:
+                for acol in self.name_cols:
                     acell = sheet.row(arow)[acol]
-                    if acell.ctype == 1 : 
+                    if acell.ctype == 1: #!!! magic number
+                        #!!! what's going on with the following assignment? Does acell.value have any effect? 
                         acell = acell.value
                         acell = acell.upper()
-                        acell = acell.replace("STL","")
+                        acell = acell.replace('STL', '')
                         acell = acell.strip()
-                        thisSpec = specRec(acell,arow,acol,sheet)
-                        self.specimens.append(thisSpec)
-                        #thisSpec.getMeasurements(sheet)
-                        #thisSpec.getThickness(sheet)
-                        #thisSpec.getLength(sheet)
+                        specimen = Specimen(acell, arow, acol, sheet)
+                        self.specimens.append(specimen)
+                        #this_spec.get_measurements(sheet)
+                        #this_spec.get_thickness(sheet)
+                        #this_spec.get_length(sheet)
                         #print acell
                         #print len(self.specimens)
-            
+
     def __str__(self):
         return self.filename
-    
-class specRec:
-    import math
-    stl_ID = ""
-    row = -1
-    column = -1
-    length = 0
-    width = 0
-    thick = 0
-    diameter = 0
-    area = 0
-    def __init__(self, name, row, column, sheet, *args, **kwargs):
-        self.stl_ID = name
+
+class Specimen:
+    stl_id = None
+    row = None
+    column = None
+    area = None
+    dimension = {}
+
+    def __init__(self, name, row, column, sheet):
+        self.stl_id = name
         self.row = row
         self.column = column
-        self.getMeasurements(sheet)
-        if self.width != 0 and self.thick != 0 : self.area = self.thick*self.width
-        if self.diameter != 0 : self.area = self.diameter**2*math.pi/4
-        
+        self.fetch_measurements(sheet)
+        #!!! need documentation about spreadsheet format (or examples) to further 
+        #!!! The area value is never used, so why bother calculating the it? 
+        try:
+            a = self.dimension['thickness'] * self.dimension['width']
+        except KeyError:
+            pass
+        else:
+            if a != 0: #!!! is this check necessary? 
+                self.area = a
+
+        try:
+            a = self.dimension['diameter'] ** 2 * math.pi / 4
+        except KeyError:
+            pass
+        else:
+            if a != 0: #!!! is this check necessary? 
+                self.area = a
+
     def __str__(self):
-        return str(self.stl_ID)+ ", "+ str(self.row) + ", " + str(self.column)
-        
-    def getMeasurements(self,sheet):
-        self.getWidth(sheet)
-        self.getThickness(sheet)
-        self.getLength(sheet)
-        self.getDiameter(sheet)
-        
-    def getWidth(self, sheet):
-        for offset in (1,2,3):
-            if self.width == 0 and \
-                sheet.row(self.row)[self.column+offset].value.lower().find("width") != -1 :
-                self.width = sheet.row(self.row+4)[self.column+offset].value
-                #print "Setting width to", self.width
-        return self.width
-            
-    def getThickness(self, sheet):
-        for offset in (1,2,3):
-            if self.thick == 0 and \
-                sheet.row(self.row)[self.column+offset].value.lower().find("thickness") != -1 :
-                self.thick = sheet.row(self.row+4)[self.column+offset].value
-                #print "Setting thickness to", self.thick
-        return self.thick
-        
-    def getLength(self, sheet):
-        for offset in (1,2,3):
-            if self.length == 0 and \
-                sheet.row(self.row)[self.column+offset].value.lower().find("length") != -1 :
-                self.length = sheet.row(self.row+4)[self.column+offset].value
-                #print "Setting length to", self.length
-        return self.length
-        
-    def getDiameter(self, sheet):
-        for offset in (1,2,3):
-            if self.diameter == 0 and \
-                sheet.row(self.row)[self.column+offset].value.lower().find("diameter") != -1 :
-                self.diameter = sheet.row(self.row+4)[self.column+offset].value
-                #print "Setting diameter to", self.diameter
-        return self.diameter
-    
-if __name__== '__main__' :
+        return str(self.stl_id) + ', ' + str(self.row) + ', '+str(self.column)
+
+    def fetch_measurements(self, sheet):
+        '''
+        Searches through the specified "sheet" for 
+        for width, thickness, length, and diameter values and 
+        saves found values in the self.dimension dictionary. 
+
+        Takes one argument, a "sheet". 
+        '''
+        for i in ['width','thickness','length','diameter']:
+            for column in range(self.column+1,self.column+3+1):
+                if self.dimension[i] == 0 and \
+                    sheet.row(self.row)[column].value.lower().find(i) != -1:
+                    self.dimension[i] = sheet.row(self.row + 4)[column].value
+                    #print 'Setting', i, 'to', self[i]
+
+if __name__== '__main__':
     print sys.argv[1]
-    an_excel_file = measurementFile(sys.argv[1])
+    an_excel_file = MeasFile(sys.argv[1]) #!!!
     print an_excel_file
     sheet1 = an_excel_file.book.sheet_by_index(0)
     print sheet1.name

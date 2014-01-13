@@ -1,0 +1,229 @@
+diff -Naur reduce-2.2.2-jep11/dataFile.py reduce-2.2.2-jep12/dataFile.py
+--- reduce-2.2.2-jep11/dataFile.py	2011-07-27 10:31:40.215176164 -0400
++++ reduce-2.2.2-jep12/dataFile.py	2011-07-27 15:13:33.574546441 -0400
+@@ -372,7 +372,8 @@
+         self.traces = self.get_traces()
+         self.number_of_columns = self.get_number_of_columns(self.textfile)
+         self.number_of_lines = self.count_lines()
+-        self.filebase = os.path.splitext(self.textfile)[0]
++        #self.filebase = os.path.splitext(self.textfile)[0]
++        self.filebase = ''
+         self.extension = os.path.splitext(self.textfile)[1]
+         self.column_labels[self.TIME] = 'Time [sec]'
+         self.column_labels[self.LOAD] = 'Load [lbf]'
+@@ -383,7 +384,7 @@
+ 
+     def log_info(self, logfile, end_line):
+         print >>logfile, '%s\t%s\t%s' % (
+-            self.filebase,
++            os.path.basename(self.filebase),
+             str(self.machine_rate),
+             str(max(self.traces[6].data[:end_line])))
+         #print self.traces[6].data[:end_line]
+@@ -405,6 +406,8 @@
+         #!!! 
+         #!!! Please be patient.
+ 
++        self.filebase = os.path.join(image_path,os.path.splitext(self.textfile)[0])
++
+         if gage_length_in != 0: #!!! better way than sentinel value? 
+             self.gage_length_in = gage_length_i
+ 
+@@ -417,11 +420,9 @@
+                     self.has_measurement_file = True
+                     self.cs_area_in2 = specimen.area
+ 
+-        picturename = plot_time_disp_load(self, '-raw', 0, 1, 0.1, 1)
+-        shutil.move(picturename, os.path.join(image_path, picturename))
++        plot_time_disp_load(self, '-raw', 0, 1, 0.1, 1)
+ 
+-        picturename = plot_time_disp_load(self, '_zerocheck', 0, 1, 0.1, 0.1)
+-        shutil.move(picturename, os.path.join(image_path, picturename))
++        plot_time_disp_load(self, '_zerocheck', 0, 1, 0.1, 0.1)
+ 
+         self.traces[self.TIME].set_label('Time [sec]') #!!!
+         self.traces[self.STROKE].set_label('Stroke [in]') #!!!
+@@ -472,13 +473,9 @@
+ 
+         #Plot the data raw data and the blown up axis after zeroing the load
+ 
+-        picturename = plot_time_disp_zeroed_load(
+-            self, '-post-shift', 0, 1, 0.1, 1)
+-        shutil.move(picturename, os.path.join(image_path, picturename))
+-
+-        picturename = plot_time_disp_zeroed_load(
+-            self, '_zerocheck-post-shift', 0, 1, 0.1, 0.1)
+-        shutil.move(picturename, os.path.join(image_path, picturename))
++        plot_time_disp_zeroed_load(self, '-post-shift', 0, 1, 0.1, 1)
++
++        plot_time_disp_zeroed_load(self, '_zerocheck-post-shift', 0, 1, 0.1, 0.1)
+ 
+         # Find a new, better end point based on the shifted data
+         test_end = self.find_end()
+@@ -497,8 +494,7 @@
+         self.traces[0].shift_column(-time_start)
+ 
+         # Plot the time and displacement shifted data. 
+-        picturename = plot_time_zeroed_load(self)
+-        shutil.move(picturename, os.path.join(image_path, picturename))
++        plot_time_zeroed_load(self)
+ 
+         # Cut off the initial, pre-test trace and plot the result. 
+         pulse_start = self.find_start(0.4, 0.05)
+@@ -511,17 +507,14 @@
+ 
+             test_end = self.number_of_lines
+ 
+-        picturename = plot_rate_measure(self, pulse_start, test_end)
+-        shutil.move(picturename, os.path.join(image_path, picturename))
++        plot_rate_measure(self, pulse_start, test_end)
+ 
+         # Get the new time and displacement zeroes, subtract them, 
+         # and plot the result. 
+-        picturename = plot_time_disp_zeroed_load(self, '-reduced', 0, 1, 0, 1)
+-        shutil.move(picturename, os.path.join(image_path, picturename))
++        plot_time_disp_zeroed_load(self, '-reduced', 0, 1, 0, 1)
+ 
+         # Plot the final load-stroke curve. 
+-        picturename = plot_disp_zeroed_load(self)
+-        shutil.move(picturename, os.path.join(image_path, picturename))
++        plot_disp_zeroed_load(self)
+ 
+         self.log_info(summary_file, test_end)
+ 
+@@ -553,9 +546,7 @@
+ 
+             test_end = self.find_neg(test_end)
+ 
+-            picturename = plot_stress_strain(
+-                self, psi, nom_strain, 0, test_end)
+-            shutil.move(picturename, os.path.join(image_path, picturename))
++            plot_stress_strain(self, psi, nom_strain, 0, test_end)
+ 
+ class DataTrace:
+     def __init__(self, filename, column, label, *args, **kwargs):
+diff -Naur reduce-2.2.2-jep11/HISTORY reduce-2.2.2-jep12/HISTORY
+--- reduce-2.2.2-jep11/HISTORY	2011-07-27 11:04:17.534569329 -0400
++++ reduce-2.2.2-jep12/HISTORY	2011-07-27 15:25:50.065287501 -0400
+@@ -1,3 +1,11 @@
++2011-07-27 reduce-2.2.2-jep12 James Prior
++
++    dataFile.py, reducePlot.py, and measurementFile.py
++
++        Directly make the plot images in the directory you want them to 
++        ultimately be in, instead of making them in the current directory, 
++        then moving them later. 
++
+ 2011-07-27 reduce-2.2.2-jep11 James Prior
+ 
+     measurementFile.py
+diff -Naur reduce-2.2.2-jep11/MD5SUM reduce-2.2.2-jep12/MD5SUM
+--- reduce-2.2.2-jep11/MD5SUM	2011-07-27 11:22:48.132607220 -0400
++++ reduce-2.2.2-jep12/MD5SUM	2011-07-27 15:25:54.457232286 -0400
+@@ -1,8 +1,8 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-48922156b0b0cd62ab6645901b211b52  dataFile.py
+-aead3132c7f6ab445f6cacff56be3201  HISTORY
+-a9611f22763c91f0be671fd372aabcc2  measurementFile.py
+-82261669a64efc2dcfd6ae421eb7053f  reducePlot.py
++0db3e389e3336bc64d0122f81821baf9  dataFile.py
++d10a4996c4a67369bce1bbd842dbbcba  HISTORY
++5e0653a61e5c79269f0e7b59607146a6  measurementFile.py
++bf068a6c2fd18e81fb08e0cbfba4e60e  reducePlot.py
+ 17e163e9d29bfa64d4aa8c2e6dc8fea1  rlo.py
+ 92f9899ed684652be377a18488d867da  setup.py
+ 46d4ed4205f776a25f2df8914261bdbd  tee.py
+diff -Naur reduce-2.2.2-jep11/measurementFile.py reduce-2.2.2-jep12/measurementFile.py
+--- reduce-2.2.2-jep11/measurementFile.py	2011-07-27 11:22:43.164669675 -0400
++++ reduce-2.2.2-jep12/measurementFile.py	2011-07-27 15:25:24.969602997 -0400
+@@ -19,7 +19,6 @@
+ import os
+ import xlrd
+ import tempfile
+-import shutil
+ 
+ import math
+ 
+diff -Naur reduce-2.2.2-jep11/reducePlot.py reduce-2.2.2-jep12/reducePlot.py
+--- reduce-2.2.2-jep11/reducePlot.py	2011-07-24 00:08:46.000000000 -0400
++++ reduce-2.2.2-jep12/reducePlot.py	2011-07-27 14:59:58.600792050 -0400
+@@ -19,6 +19,7 @@
+ 
+ import pylab as p
+ import tempfile
++import os
+ 
+ def decimate(array, points):
+     if not isinstance(points, int):
+@@ -38,7 +39,7 @@
+ 
+     picturename = f.filebase + '-time-stroke-load' + extra_label + '.png'
+     #!!! 2011-07-23 delete f line after a few days f = open(f.textfile, 'rU') #!!! f is never referenced. 
+-    p.title('Time - Disp - Load' + '\n' + f.filebase)
++    p.title('Time - Disp - Load' + '\n' + os.path.basename(f.filebase))
+     p.plot(f.get_time_data(), f.get_load_data(), 'b-', label='Load')
+     p.ylabel('Load [lbf]')
+     p.legend(loc=2)
+@@ -62,7 +63,7 @@
+ 
+     picturename = f.filebase + '-time-stroke-load' + extra_label + '.png'
+ 
+-    p.title('Time - Disp - Load' + '\n' + f.filebase)
++    p.title('Time - Disp - Load' + '\n' + os.path.basename(f.filebase))
+     p.plot(f.get_time_data(), f.get_zl_data(), 'b-', label='Load')
+     p.ylabel('Load [lbf]')
+     p.legend(loc=2)
+@@ -83,7 +84,7 @@
+ def plot_time_load(f):
+     picturename = f.filebase + '-time-load.png'
+ 
+-    p.title('Time - Load' + '\n' + f.filebase)
++    p.title('Time - Load' + '\n' + os.path.basename(f.filebase))
+     p.plot(f.get_time_data(), f.get_load_data(), 'k+', lw=2)
+     v = p.axis()
+     p.axis((0, v[1], 0, v[3]))
+@@ -96,7 +97,7 @@
+ def plot_time_zeroed_load(f):
+     picturename = f.filebase + '-time-load.png'
+ 
+-    p.title('Time - Load' + '\n' + f.filebase)
++    p.title('Time - Load' + '\n' + os.path.basename(f.filebase))
+     p.plot(f.get_time_data(), f.get_zl_data(), 'k+', lw=2)
+     v = p.axis()
+     p.axis((0, v[1], 0, v[3]))
+@@ -111,7 +112,7 @@
+     stroke_trace = f.get_stroke_data()
+ 
+     picturename = f.filebase + '-rate_measure.png'
+-    p.title('Time - Disp - Load' + '\n' + f.filebase)
++    p.title('Time - Disp - Load' + '\n' + os.path.basename(f.filebase))
+     p.plot(decimate(time_trace[start_line:end_line], 500), \
+         decimate(stroke_trace[start_line:end_line], 500), \
+         'b-', label='Disp')
+@@ -144,7 +145,7 @@
+ 
+ def plot_disp_load(f):
+     picturename = f.filebase + '-stroke-load.png'
+-    p.title('Disp - Load' + '\n' + f.filebase)
++    p.title('Disp - Load' + '\n' + os.path.basename(f.filebase))
+     p.plot(f.get_stroke_data(), f.get_load_data(), 'g-')
+     v = p.axis()
+     p.axis((0, v[1], 0, v[3]))
+@@ -156,7 +157,7 @@
+ 
+ def plot_disp_zeroed_load(f):
+     picturename = f.filebase + '-stroke-load.png'
+-    p.title('Disp - Load' + '\n' + f.filebase)
++    p.title('Disp - Load' + '\n' + os.path.basename(f.filebase))
+     p.plot(f.get_stroke_data(), f.get_zl_data(), 'g-')
+     v = p.axis()
+     p.axis((0, v[1], 0, v[3]))
+@@ -168,7 +169,7 @@
+ 
+ def plot_stress_strain(f, stress, strain, start_line, end_line):
+     picturename = f.filebase + '-stress-strain.png'
+-    p.title('Stress - Nominal Strain' + '\n' + f.filebase)
++    p.title('Stress - Nominal Strain' + '\n' + os.path.basename(f.filebase))
+     strain_data = f.traces[strain].get_data()
+     #print start_line
+     #print end_line

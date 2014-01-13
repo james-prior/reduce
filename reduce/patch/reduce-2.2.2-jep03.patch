@@ -1,0 +1,319 @@
+diff -Naur reduce-2.2.2-jep02/dataFile.py reduce-2.2.2-jep03/dataFile.py
+--- reduce-2.2.2-jep02/dataFile.py	2011-07-24 00:23:57.041851976 -0400
++++ reduce-2.2.2-jep03/dataFile.py	2011-07-25 14:38:20.037507396 -0400
+@@ -22,28 +22,34 @@
+ import shutil
+ 
+ def strip_term(line):
++    return line.rstrip('\n\r')
++    #!!! the old code for strip_term is preserved below
+     line_end = len(line)
+     for i in range(1, min(line_end, 5)):
+-        if ord(line[-i]) == 10 or ord(line[-i]) == 13:
+-            line_end = line_end - 1
+-    line = line[0:line_end]
++        if line[-i] == '\n' or line[-i] == '\r':
++            line_end -= 1
++    line = line[:line_end]
+     return line
+ 
+ class DataFile:
+     has_measurement_file = False
+     TIME, STROKE, LOAD = range(3) #!!! is there a better way of associating these enumerated types with their use? 
+     column_labels = []
+-    Test_Temp_F = 32.0
+-    Test_Temp_C = 0.0
+-    Machine_Rate = 0.0
+-    Machine_Rate_m = 0.0
+-    Machine_Rate_in = 0.0
++    if False: #!!! unused variablles, consider deleting them. 
++        test_temp_f = 32.0
++        test_temp_c = 0.0
++    machine_rate = 0.0
++    if False: #!!! unused variablles, consider deleting them. 
++        machine_rate_m = 0.0
++        machine_rate_in = 0.0
+     cs_area_in2 = 0.0
+-    Width_mm = 0.0
+-    Thickness_mm = 0.0
+-    CS_Area_mm2 = 0.0
++    if False: #!!! unused variablles, consider deleting them. 
++        width_mm = 0.0
++        thickness_mm = 0.0
++        cs_area_mm2 = 0.0
+     gage_length_in = 0.0
+-    Gage_Length_mm = 0.0
++    if False: #!!! unused variablles, consider deleting them. 
++        gage_length_mm = 0.0
+     load_drop_line = 0
+     area_end_line = 0
+     end_of_stroke_line = 0
+@@ -125,20 +131,26 @@
+ 
+     def count_lines(self):
+         f = open(self.textfile, 'rU')
+-        f.readline(),
++        f.readline(), #!!! to skip over header line without counting it? #!!! what is trailing comma for? 
+         try:
+             count = 0
+             for line in f:
+                 count += 1
+         finally:
+             f.close()
++        if False:
++            #!!! Notice that first line count is one less than second line count. Why? Not counting header line? 
++            print '@@@@@@@@@@@@@@ self.textfile="%s", count_lines=%s' % (
++                self.textfile, count)
++            print '@@@@@@@@@@@@@@ len(open(self.textfile, \'rU\')=', len(
++                open(self.textfile, 'rU').readlines())
+         return count
+ 
+     def get_column(a_file, column_number):
+         a_file.seek(0),
+         column_data = []
+         for line in a_file:
+-            words = line.split('\t')
++            words = line.split('\t') #!!! Why not split on any whitespace? 
+             column_data += [words[column_number]]
+         return column_data
+ 
+@@ -146,7 +158,7 @@
+         try:
+             column_lengths = []
+             f = open(self.textfile, 'rU')
+-            f.readline(),
++            f.readline(), #!!! to skip over header line without counting it? #!!! what is trailing comma for? 
+             try:
+                 for trace in self.traces:
+                     if len(trace) > 0:
+@@ -155,16 +167,15 @@
+                         column_lengths += [0]
+             finally:
+                 f.close()
+-        except(IOError):
++        except IOError:
+             column_lengths = []
+-
+         return column_lengths
+ 
+     def append_column(self, column_data, heading):
+         f = open(self.textfile, 'rU')
+         temp = tempfile.mktemp()
+         g = open(temp, 'w')
+-        index = 0
++        index = 0 #!!! index usage is awkward
+         header = ''
+         for label in self.column_labels:
+             header += '\t'
+@@ -173,14 +184,14 @@
+         g.write(header)
+         try:
+             for line in f:
+-                if index == 0:
++                if index == 0: #!!! skipping over header
+                     index += 1
+                     continue
+                 else:
+                     if len(strip_term(line)) > 1:
+                         try:
+                             line = strip_term(line) + '\t' + str(column_data[index - 1]) + '\n'
+-                        except(IndexError):
++                        except IndexError:
+                             line = strip_term(line) + '\t''\n' #!!! ???
+ 
+                         g.write(line)
+@@ -193,7 +204,7 @@
+ 
+         try:
+             a_trace = DataTrace(self.textfile, self.number_of_columns - 1, heading)
+-        except(IndexError):
++        except IndexError:
+             a_trace = DataTrace(self.textfile, self.number_of_columns - 1, '')
+         self.traces += [a_trace]
+         self.column_labels += [a_trace.label]
+@@ -208,13 +219,13 @@
+         while True:
+             try:
+                 trace = DataTrace(self.textfile, count, self.column_labels[count])
+-            except(IndexError):
++            except IndexError:
+                 trace = DataTrace(self.textfile, count, '')
+             if trace.get_length() > 0:
+                 self.traces += [trace]
+                 try:
+                     self.column_labels[count] = trace.label
+-                except(IndexError):
++                except IndexError:
+                     self.column_labels += [trace.label]
+             else:
+                 break
+@@ -259,15 +270,21 @@
+         return self.find_average(array[start:])
+ 
+     def find_average(self, array):
+-        count = 0.0
+-        sum = 0.0
+-        for number in array:
+-            count += 1.0
+-            sum += number
+-        if count > 0:
+-            return sum / count
+-        else:
+-            return 0
++        try:
++            average = sum(array)/len(array)
++        except ZeroDivisionError:
++            average = 0
++        return average
++        #!!! delete the old code below when the above is known to work. 
++        #count = 0.0
++        #sum = 0.0
++        #for number in array:
++        #    count += 1.0
++        #    sum += number
++        #if count > 0:
++        #    return sum / count
++        #else:
++        #    return 0
+ 
+     def find_end(self):
+         time = self.get_time_data()
+@@ -366,7 +383,7 @@
+                 dispsum += (disp[pulse_start + i] - disp[pulse_start + i - 1])
+                 timesum += (time[pulse_start + i] - time[pulse_start + i - 1])
+         rate = dispsum / timesum
+-        self.Machine_Rate = rate
++        self.machine_rate = rate
+         return rate
+ 
+ 
+@@ -398,14 +415,13 @@
+     def log_info(self, logfile, end_line):
+         print >>logfile, '%s\t%s\t%s' % (
+             self.filebase,
+-            str(self.Machine_Rate),
++            str(self.machine_rate),
+             str(max(self.traces[6].data[:end_line])))
+         #print self.traces[6].data[:end_line]
+ 
+ 
+ class DataTrace:
+     def __init__(self, filename, column, label, *args, **kwargs):
+-
+         self.textfile = filename
+         self.column = column
+         self.length = 0
+@@ -477,9 +493,9 @@
+                 if len(line) > self.column and line[self.column] != '':
+                     try:
+                         data += [float(line[self.column].strip())]
+-                    except(IndexError):
++                    except IndexError:
+                         print 'IndexError', len(line), self.column
+-                    except(ValueError):
++                    except ValueError:
+                         print 'ValueError', 'point:', line[self.column], 'length:', len(line), 'column:', self.column
+                         continue
+             f.close()
+@@ -526,10 +542,10 @@
+                     output_line = line[0:self.column] + [str(number)] + line[self.column + 1:]
+                     #print line
+                     #print output_line
+-                except(ValueError):
++                except ValueError:
+                     #print 'ValueError', line
+                     continue
+-                except(IndexError):
++                except IndexError:
+                     #print 'IndexError', line
+                     continue
+                 writer.writerow(output_line)
+diff -Naur reduce-2.2.2-jep02/HISTORY reduce-2.2.2-jep03/HISTORY
+--- reduce-2.2.2-jep02/HISTORY	2011-07-24 00:47:15.020277007 -0400
++++ reduce-2.2.2-jep03/HISTORY	2011-07-25 14:45:46.803890781 -0400
+@@ -1,3 +1,13 @@
++2011-07-25 reduce-2.2.2-jep03 James Prior
++
++    dataFile.py and rlo.py
++
++        Mild low level reformatting of all code in these modules to 
++        mostly follow PEP 8 -- Style Guide for Python Code
++        This also affected other modules, particularly for names. 
++
++        Some refactoring. 
++
+ 2011-07-24 reduce-2.2.2-jep02 James Prior
+ 
+     measurementFile.py, reducePlot.py, and dataFile.py
+diff -Naur reduce-2.2.2-jep02/MD5SUM reduce-2.2.2-jep03/MD5SUM
+--- reduce-2.2.2-jep02/MD5SUM	2011-07-24 00:47:33.256047753 -0400
++++ reduce-2.2.2-jep03/MD5SUM	2011-07-25 14:47:35.730521388 -0400
+@@ -1,8 +1,8 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-0e4e2ea142c46260d45f7e5d5be97f1e  dataFile.py
+-1d7b65f26a61cde99251d2a17bed0aaf  HISTORY
++3da94b9aa1ea12e8aba3eaa3037f3d95  dataFile.py
++fd417fe1f77d44b84c471a2cf44f69da  HISTORY
+ 83fc2d8b27267835cb5aaa38122323c7  measurementFile.py
+ 82261669a64efc2dcfd6ae421eb7053f  reducePlot.py
+-c6fc18b49f56802ca8858ed8596b6ab7  rlo.py
++26b6837dda1cc976bdb0827ddf20968e  rlo.py
+ 92f9899ed684652be377a18488d867da  setup.py
+ 39212773f9861e9e9c218a6cc3c8c40f  tee.py
+diff -Naur reduce-2.2.2-jep02/rlo.py reduce-2.2.2-jep03/rlo.py
+--- reduce-2.2.2-jep02/rlo.py	2011-07-24 00:28:04.038746804 -0400
++++ reduce-2.2.2-jep03/rlo.py	2011-07-25 14:39:41.212486889 -0400
+@@ -334,32 +334,32 @@
+     and f.get_gage_length_in() != 0 \
+     and f.get_cs_area_in2() != 0:
+         new_column = f.get_stroke_data()
+-	load_data = f.get_load_data()
++        load_data = f.get_load_data()
+ 
+-	slope_start = f.find_load_pct(0.4)
+-	slope_end = f.find_load_pct(0.5)
++        slope_start = f.find_load_pct(0.4)
++        slope_end = f.find_load_pct(0.5)
+ 
+-	slope = ((load_data[slope_end] - load_data[slope_start])
++        slope = ((load_data[slope_end] - load_data[slope_start])
+         /       (new_column[slope_end] - new_column[slope_start]))
+-	print >>t, 'modulus =', slope / f.get_cs_area_in2()
+-	intercept = new_column[slope_start]-load_data[slope_start] / slope
+-	print >>t, 'intercept =', intercept
+-
+-	for i in range(len(new_column)):
+-	    new_column[i] = (new_column[i]-intercept) / f.get_gage_length_in()
+-	f.append_column(new_column, 'Nominal Strain [in/in]')
+-	nom_strain = len(f.get_traces_raw())-1
+-
+-	new_column = f.get_zl_data()
+-	for i in range(len(new_column)):
+-	    new_column[i] /= f.get_cs_area_in2()
+-	f.append_column(new_column, 'Stress [psi]')
+-	psi = len(f.get_traces_raw()) - 1
++        print >>t, 'modulus =', slope / f.get_cs_area_in2()
++        intercept = new_column[slope_start]-load_data[slope_start] / slope
++        print >>t, 'intercept =', intercept
++
++        for i in range(len(new_column)):
++            new_column[i] = (new_column[i]-intercept) / f.get_gage_length_in()
++        f.append_column(new_column, 'Nominal Strain [in/in]')
++        nom_strain = len(f.get_traces_raw())-1
++
++        new_column = f.get_zl_data()
++        for i in range(len(new_column)):
++            new_column[i] /= f.get_cs_area_in2()
++        f.append_column(new_column, 'Stress [psi]')
++        psi = len(f.get_traces_raw()) - 1
+ 
+-	test_end = f.find_neg(test_end)
++        test_end = f.find_neg(test_end)
+ 
+-	picturename = plot_stress_strain(f, psi, nom_strain, 0, test_end)
+-	shutil.move(picturename, os.path.join(image_path, picturename))
++        picturename = plot_stress_strain(f, psi, nom_strain, 0, test_end)
++        shutil.move(picturename, os.path.join(image_path, picturename))
+ 
+     print >>t, time.strftime('%a, %d %b %Y %H:%M:%S +0000', time.localtime())
+     print >>t, 'user:', os.times()[0], 's'

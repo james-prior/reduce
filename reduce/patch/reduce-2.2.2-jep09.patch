@@ -1,0 +1,102 @@
+diff -Naur reduce-2.2.2-jep08/HISTORY reduce-2.2.2-jep09/HISTORY
+--- reduce-2.2.2-jep08/HISTORY	2011-07-26 17:11:13.023992242 -0400
++++ reduce-2.2.2-jep09/HISTORY	2011-07-26 19:26:31.057934733 -0400
+@@ -1,3 +1,9 @@
++2011-07-26 reduce-2.2.2-jep09 James Prior
++
++    measurementFile.py
++
++        Modest refactorings of MeasFile class. 
++
+ 2011-07-26 reduce-2.2.2-jep08 James Prior
+ 
+     rlo.py and dataFile.py
+diff -Naur reduce-2.2.2-jep08/MD5SUM reduce-2.2.2-jep09/MD5SUM
+--- reduce-2.2.2-jep08/MD5SUM	2011-07-26 17:11:19.283913544 -0400
++++ reduce-2.2.2-jep09/MD5SUM	2011-07-26 19:34:08.688181542 -0400
+@@ -1,7 +1,7 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+ c6e9ca21374e9d902506e569139bc160  dataFile.py
+-4094e741325ceadd79b7c1c2c56d277e  HISTORY
+-83fc2d8b27267835cb5aaa38122323c7  measurementFile.py
++32083a922d52364ffdb8cbadfbef8092  HISTORY
++c2230934bd3f14e5ca502d959f19a49e  measurementFile.py
+ 82261669a64efc2dcfd6ae421eb7053f  reducePlot.py
+ 17e163e9d29bfa64d4aa8c2e6dc8fea1  rlo.py
+ 92f9899ed684652be377a18488d867da  setup.py
+diff -Naur reduce-2.2.2-jep08/measurementFile.py reduce-2.2.2-jep09/measurementFile.py
+--- reduce-2.2.2-jep08/measurementFile.py	2011-07-24 00:37:58.000000000 -0400
++++ reduce-2.2.2-jep09/measurementFile.py	2011-07-26 19:34:02.476259636 -0400
+@@ -23,54 +23,44 @@
+ 
+ class MeasFile:
+     filename = ''
+-    description = ''
+-    sponsor = ''
+-    tech = ''
+-    acct_number = ''
+-    date = ''
++    if False: #!!! unused variablles, consider deleting them. 
++        description = ''
++        sponsor = ''
++        tech = ''
++        acct_number = ''
++        date = ''
+     sheets = []
+     specimens = []
+-    sheet_count = 0
+     book = ''
+     name_rows = range(5, 50+1, 5) #!!! magice numbers
+     name_cols = range(0, 5+1, 5) #!!! magice numbers
+-    def __init__(self, name, *args, **kwargs):
++
++    def __init__(self, filename):
+         self.sheets = []
+         self.specimens = []
+-        self.filename = name
++        self.filename = filename
+         self.book = xlrd.open_workbook(self.filename)
+         for sheet in self.book.sheets():
+-            is_a_meas_sheet = True
+-            #!!! consider refactoring if/else to one big if statement, 
+-            #!!! (if there are not side effects of calling 
+-            #!!! sheet.row()[].value.find() methods). 
+-            #!!! a side benefit will likely be the eliminatation of 
+-            #!!! the is_a_meas_sheet variable. 
+-            if sheet.nrows == 0:
+-                is_a_meas_sheet = False
+-            else:
+-                if sheet.row(0)[4].value.find('Measurement Sheet') == -1:
+-                    is_a_meas_sheet = False
+-                if sheet.row(4)[0].value.find('Specimen ID') == -1:
+-                    is_a_meas_sheet = False
+-                if sheet.row(4)[5].value.find('Specimen ID') == -1:
+-                    is_a_meas_sheet = False
+-            if is_a_meas_sheet:
++            if (sheet.nrows > 0
++            and sheet.row(0)[4].value.find('Measurement Sheet') != -1
++            and sheet.row(4)[0].value.find('Specimen ID') != -1
++            and sheet.row(4)[5].value.find('Specimen ID') != -1):
++                # The sheet is a measurement sheet. 
+                 #print sheet.name, 'is a measurement sheet!'
+                 self.sheets.append(sheet)
+-        self.sheet_count = len(self.sheets)
+-        #print 'sheet_count:', self.sheet_count
++        #print 'number of sheets:', self.len(self.sheets)
+         for sheet in self.sheets:
+             for arow in self.name_rows:
+                 for acol in self.name_cols:
+                     acell = sheet.row(arow)[acol]
+                     if acell.ctype == 1: #!!! magic number
++                        #!!! what's going on with the following assignment? Does acell.value have any effect? 
+                         acell = acell.value
+                         acell = acell.upper()
+                         acell = acell.replace('STL', '')
+                         acell = acell.strip()
+-                        this_spec = SpecRec(acell, arow, acol, sheet)
+-                        self.specimens.append(this_spec)
++                        specimen = SpecRec(acell, arow, acol, sheet)
++                        self.specimens.append(specimen)
+                         #this_spec.get_measurements(sheet)
+                         #this_spec.get_thickness(sheet)
+                         #this_spec.get_length(sheet)

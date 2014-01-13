@@ -1,0 +1,308 @@
+diff -Naur reduce-2.2.2-jep09/HISTORY reduce-2.2.2-jep10/HISTORY
+--- reduce-2.2.2-jep09/HISTORY	2011-07-26 19:26:31.057934733 -0400
++++ reduce-2.2.2-jep10/HISTORY	2011-07-27 10:52:38.003363627 -0400
+@@ -1,3 +1,9 @@
++2011-07-27 reduce-2.2.2-jep10 James Prior
++
++    measurementFile.py
++
++        Removed ASCII CR (carriage return) characters. 
++
+ 2011-07-26 reduce-2.2.2-jep09 James Prior
+ 
+     measurementFile.py
+diff -Naur reduce-2.2.2-jep09/MD5SUM reduce-2.2.2-jep10/MD5SUM
+--- reduce-2.2.2-jep09/MD5SUM	2011-07-26 19:34:08.688181542 -0400
++++ reduce-2.2.2-jep10/MD5SUM	2011-07-27 10:52:59.299095902 -0400
+@@ -1,7 +1,7 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+ c6e9ca21374e9d902506e569139bc160  dataFile.py
+-32083a922d52364ffdb8cbadfbef8092  HISTORY
+-c2230934bd3f14e5ca502d959f19a49e  measurementFile.py
++dd8f1034a89ebe8338d044b32d34d2b7  HISTORY
++727f9eb12cd3fcf73816bd7077088865  measurementFile.py
+ 82261669a64efc2dcfd6ae421eb7053f  reducePlot.py
+ 17e163e9d29bfa64d4aa8c2e6dc8fea1  rlo.py
+ 92f9899ed684652be377a18488d867da  setup.py
+diff -Naur reduce-2.2.2-jep09/measurementFile.py reduce-2.2.2-jep10/measurementFile.py
+--- reduce-2.2.2-jep09/measurementFile.py	2011-07-26 19:34:02.476259636 -0400
++++ reduce-2.2.2-jep10/measurementFile.py	2011-07-27 10:51:26.364264252 -0400
+@@ -1,139 +1,139 @@
+-#"Copyright 2010 Bryan Harris"
+-# Copyright 2011 James Prior
+-#
+-#This file is part of Reduce.
+-#
+-#    Reduce is free software: you can redistribute it and/or modify
+-#    it under the terms of the GNU General Public License as published by
+-#    the Free Software Foundation, either version 3 of the License, or
+-#    (at your option) any later version.
+-#
+-#    Reduce is distributed in the hope that it will be useful,
+-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-#    GNU General Public License for more details.
+-#
+-#    You should have received a copy of the GNU General Public License
+-#    along with Reduce.  If not, see <http://www.gnu.org/licenses/>.
+-
+-import os
+-import xlrd
+-import tempfile
+-import shutil
+-
+-class MeasFile:
+-    filename = ''
+-    if False: #!!! unused variablles, consider deleting them. 
+-        description = ''
+-        sponsor = ''
+-        tech = ''
+-        acct_number = ''
+-        date = ''
+-    sheets = []
+-    specimens = []
+-    book = ''
+-    name_rows = range(5, 50+1, 5) #!!! magice numbers
+-    name_cols = range(0, 5+1, 5) #!!! magice numbers
+-
+-    def __init__(self, filename):
+-        self.sheets = []
+-        self.specimens = []
+-        self.filename = filename
+-        self.book = xlrd.open_workbook(self.filename)
+-        for sheet in self.book.sheets():
+-            if (sheet.nrows > 0
+-            and sheet.row(0)[4].value.find('Measurement Sheet') != -1
+-            and sheet.row(4)[0].value.find('Specimen ID') != -1
+-            and sheet.row(4)[5].value.find('Specimen ID') != -1):
+-                # The sheet is a measurement sheet. 
+-                #print sheet.name, 'is a measurement sheet!'
+-                self.sheets.append(sheet)
+-        #print 'number of sheets:', self.len(self.sheets)
+-        for sheet in self.sheets:
+-            for arow in self.name_rows:
+-                for acol in self.name_cols:
+-                    acell = sheet.row(arow)[acol]
+-                    if acell.ctype == 1: #!!! magic number
+-                        #!!! what's going on with the following assignment? Does acell.value have any effect? 
+-                        acell = acell.value
+-                        acell = acell.upper()
+-                        acell = acell.replace('STL', '')
+-                        acell = acell.strip()
+-                        specimen = SpecRec(acell, arow, acol, sheet)
+-                        self.specimens.append(specimen)
+-                        #this_spec.get_measurements(sheet)
+-                        #this_spec.get_thickness(sheet)
+-                        #this_spec.get_length(sheet)
+-                        #print acell
+-                        #print len(self.specimens)
+-
+-    def __str__(self):
+-        return self.filename
+-
+-class SpecRec:
+-    import math #!!! should this be done at top of module? 
+-    stl_id = ''
+-    row = -1
+-    column = -1
+-    length = 0
+-    width = 0
+-    thick = 0
+-    diameter = 0
+-    area = 0
+-    def __init__(self, name, row, column, sheet, *args, **kwargs):
+-        self.stl_id = name
+-        self.row = row
+-        self.column = column
+-        self.get_measurements(sheet)
+-        if self.width != 0 and self.thick != 0:
+-            self.area = self.thick * self.width
+-        if self.diameter != 0:
+-            self.area = self.diameter ** 2 * math.pi / 4
+-
+-    def __str__(self):
+-        return str(self.stl_id) + ', ' + str(self.row) + ', '+str(self.column)
+-
+-    def get_measurements(self, sheet):
+-        self.get_width(sheet)
+-        self.get_thickness(sheet)
+-        self.get_length(sheet)
+-        self.get_diameter(sheet)
+-
+-    def get_width(self, sheet):
+-        for offset in range(1,3+1):
+-            if self.width == 0 and \
+-                sheet.row(self.row)[self.column + offset].value.lower().find('width') != -1:
+-                self.width = sheet.row(self.row + 4)[self.column + offset].value
+-                #print 'Setting width to', self.width
+-        return self.width
+-
+-    def get_thickness(self, sheet):
+-        for offset in range(1,3+1):
+-            if self.thick == 0 and \
+-                sheet.row(self.row)[self.column + offset].value.lower().find('thickness') != -1:
+-                self.thick = sheet.row(self.row + 4)[self.column + offset].value
+-                #print 'Setting thickness to', self.thick
+-        return self.thick
+-
+-    def get_length(self, sheet):
+-        for offset in range(1,3+1):
+-            if self.length == 0 and \
+-                sheet.row(self.row)[self.column + offset].value.lower().find('length') != -1:
+-                self.length = sheet.row(self.row + 4)[self.column + offset].value
+-                #print 'Setting length to', self.length
+-        return self.length
+-
+-    def get_diameter(self, sheet):
+-        for offset in range(1,3+1):
+-            if self.diameter == 0 and \
+-                sheet.row(self.row)[self.column + offset].value.lower().find('diameter') != -1:
+-                self.diameter = sheet.row(self.row + 4)[self.column + offset].value
+-                #print 'Setting diameter to', self.diameter
+-        return self.diameter
+-
+-if __name__== '__main__':
+-    print sys.argv[1]
+-    an_excel_file = MeasFile(sys.argv[1]) #!!!
+-    print an_excel_file
+-    sheet1 = an_excel_file.book.sheet_by_index(0)
+-    print sheet1.name
++#"Copyright 2010 Bryan Harris"
++# Copyright 2011 James Prior
++#
++#This file is part of Reduce.
++#
++#    Reduce is free software: you can redistribute it and/or modify
++#    it under the terms of the GNU General Public License as published by
++#    the Free Software Foundation, either version 3 of the License, or
++#    (at your option) any later version.
++#
++#    Reduce is distributed in the hope that it will be useful,
++#    but WITHOUT ANY WARRANTY; without even the implied warranty of
++#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++#    GNU General Public License for more details.
++#
++#    You should have received a copy of the GNU General Public License
++#    along with Reduce.  If not, see <http://www.gnu.org/licenses/>.
++
++import os
++import xlrd
++import tempfile
++import shutil
++
++class MeasFile:
++    filename = ''
++    if False: #!!! unused variablles, consider deleting them. 
++        description = ''
++        sponsor = ''
++        tech = ''
++        acct_number = ''
++        date = ''
++    sheets = []
++    specimens = []
++    book = ''
++    name_rows = range(5, 50+1, 5) #!!! magice numbers
++    name_cols = range(0, 5+1, 5) #!!! magice numbers
++
++    def __init__(self, filename):
++        self.sheets = []
++        self.specimens = []
++        self.filename = filename
++        self.book = xlrd.open_workbook(self.filename)
++        for sheet in self.book.sheets():
++            if (sheet.nrows > 0
++            and sheet.row(0)[4].value.find('Measurement Sheet') != -1
++            and sheet.row(4)[0].value.find('Specimen ID') != -1
++            and sheet.row(4)[5].value.find('Specimen ID') != -1):
++                # The sheet is a measurement sheet. 
++                #print sheet.name, 'is a measurement sheet!'
++                self.sheets.append(sheet)
++        #print 'number of sheets:', self.len(self.sheets)
++        for sheet in self.sheets:
++            for arow in self.name_rows:
++                for acol in self.name_cols:
++                    acell = sheet.row(arow)[acol]
++                    if acell.ctype == 1: #!!! magic number
++                        #!!! what's going on with the following assignment? Does acell.value have any effect? 
++                        acell = acell.value
++                        acell = acell.upper()
++                        acell = acell.replace('STL', '')
++                        acell = acell.strip()
++                        specimen = SpecRec(acell, arow, acol, sheet)
++                        self.specimens.append(specimen)
++                        #this_spec.get_measurements(sheet)
++                        #this_spec.get_thickness(sheet)
++                        #this_spec.get_length(sheet)
++                        #print acell
++                        #print len(self.specimens)
++
++    def __str__(self):
++        return self.filename
++
++class SpecRec:
++    import math #!!! should this be done at top of module? 
++    stl_id = ''
++    row = -1
++    column = -1
++    length = 0
++    width = 0
++    thick = 0
++    diameter = 0
++    area = 0
++    def __init__(self, name, row, column, sheet, *args, **kwargs):
++        self.stl_id = name
++        self.row = row
++        self.column = column
++        self.get_measurements(sheet)
++        if self.width != 0 and self.thick != 0:
++            self.area = self.thick * self.width
++        if self.diameter != 0:
++            self.area = self.diameter ** 2 * math.pi / 4
++
++    def __str__(self):
++        return str(self.stl_id) + ', ' + str(self.row) + ', '+str(self.column)
++
++    def get_measurements(self, sheet):
++        self.get_width(sheet)
++        self.get_thickness(sheet)
++        self.get_length(sheet)
++        self.get_diameter(sheet)
++
++    def get_width(self, sheet):
++        for offset in range(1,3+1):
++            if self.width == 0 and \
++                sheet.row(self.row)[self.column + offset].value.lower().find('width') != -1:
++                self.width = sheet.row(self.row + 4)[self.column + offset].value
++                #print 'Setting width to', self.width
++        return self.width
++
++    def get_thickness(self, sheet):
++        for offset in range(1,3+1):
++            if self.thick == 0 and \
++                sheet.row(self.row)[self.column + offset].value.lower().find('thickness') != -1:
++                self.thick = sheet.row(self.row + 4)[self.column + offset].value
++                #print 'Setting thickness to', self.thick
++        return self.thick
++
++    def get_length(self, sheet):
++        for offset in range(1,3+1):
++            if self.length == 0 and \
++                sheet.row(self.row)[self.column + offset].value.lower().find('length') != -1:
++                self.length = sheet.row(self.row + 4)[self.column + offset].value
++                #print 'Setting length to', self.length
++        return self.length
++
++    def get_diameter(self, sheet):
++        for offset in range(1,3+1):
++            if self.diameter == 0 and \
++                sheet.row(self.row)[self.column + offset].value.lower().find('diameter') != -1:
++                self.diameter = sheet.row(self.row + 4)[self.column + offset].value
++                #print 'Setting diameter to', self.diameter
++        return self.diameter
++
++if __name__== '__main__':
++    print sys.argv[1]
++    an_excel_file = MeasFile(sys.argv[1]) #!!!
++    print an_excel_file
++    sheet1 = an_excel_file.book.sheet_by_index(0)
++    print sheet1.name

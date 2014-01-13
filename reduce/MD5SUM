@@ -1,7 +1,8 @@
-70bca034e0a8199fb351dbd587ac3a8f  dataFile.py
-a930d17bf6005ae0b785011f8d274785  HISTORY
-8cdc0838a5533543846001ab66c4d695  measurementFile.py
-063e9a94c143531bdd370d6e9b9fc85c  reducePlot.py
-3da042243a29e3c40ec50f04907dbc39  rlo.py
+d22d26f5e12df29d258779afb9c24321  AUTHORS
+0db3e389e3336bc64d0122f81821baf9  dataFile.py
+d10a4996c4a67369bce1bbd842dbbcba  HISTORY
+5e0653a61e5c79269f0e7b59607146a6  measurementFile.py
+bf068a6c2fd18e81fb08e0cbfba4e60e  reducePlot.py
+17e163e9d29bfa64d4aa8c2e6dc8fea1  rlo.py
 92f9899ed684652be377a18488d867da  setup.py
-39212773f9861e9e9c218a6cc3c8c40f  tee.py
+46d4ed4205f776a25f2df8914261bdbd  tee.py

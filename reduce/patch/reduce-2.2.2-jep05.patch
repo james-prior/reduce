@@ -1,0 +1,78 @@
+diff -Naur reduce-2.2.2-jep04/HISTORY reduce-2.2.2-jep05/HISTORY
+--- reduce-2.2.2-jep04/HISTORY	2011-07-25 15:12:31.555716320 -0400
++++ reduce-2.2.2-jep05/HISTORY	2011-07-26 08:37:31.955465547 -0400
+@@ -1,3 +1,9 @@
++2011-07-26 reduce-2.2.2-jep05 James Prior
++
++    tee.py
++
++        Updated docstrings. 
++
+ 2011-07-25 reduce-2.2.2-jep04 James Prior
+ 
+     rlo.py
+diff -Naur reduce-2.2.2-jep04/MD5SUM reduce-2.2.2-jep05/MD5SUM
+--- reduce-2.2.2-jep04/MD5SUM	2011-07-25 15:12:42.835574512 -0400
++++ reduce-2.2.2-jep05/MD5SUM	2011-07-26 08:37:47.011276268 -0400
+@@ -1,8 +1,8 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+ 3da94b9aa1ea12e8aba3eaa3037f3d95  dataFile.py
+-f27a4e686d07ad431908cf65a3ade3d8  HISTORY
++41a09209eaf37cfc49522151b4a58614  HISTORY
+ 83fc2d8b27267835cb5aaa38122323c7  measurementFile.py
+ 82261669a64efc2dcfd6ae421eb7053f  reducePlot.py
+ 55bae56d8b2696409aa84238caf211d3  rlo.py
+ 92f9899ed684652be377a18488d867da  setup.py
+-39212773f9861e9e9c218a6cc3c8c40f  tee.py
++46d4ed4205f776a25f2df8914261bdbd  tee.py
+diff -Naur reduce-2.2.2-jep04/tee.py reduce-2.2.2-jep05/tee.py
+--- reduce-2.2.2-jep04/tee.py	2011-07-21 14:08:23.000000000 -0400
++++ reduce-2.2.2-jep05/tee.py	2011-07-26 00:26:00.426224279 -0400
+@@ -19,23 +19,39 @@
+ 
+ class Tee:
+     '''
+-    Simplifies writing to multiple files. 
++    Simplifies writing same data to multiple files. 
+ 
+     Instead of repeating a print for each file one needs to output to, 
+     one uses a single print that redirects to an instance of this class.  
+ 
+     For example, instead of doing: 
+-       print 'big long ugly messy stuff'
+-       print >>file1 'big long ugly messy stuff'
+-       print >>file2 'big long ugly messy stuff'
++        print 'big long ugly messy stuff'
++        print >>file1 'big long ugly messy stuff'
++        print >>file2 'big long ugly messy stuff'
+     one does the following:
+-       tee=Tee([sys.stdout,file1,file2])
+-       ...
+-       print >>tee 'big long ugly messy stuff'
++        import sys
++        from tee import *
++        tee=Tee([sys.stdout,file1,file2])
++        ...
++        print >>tee 'big long ugly messy stuff'
++    or even:
++        import sys
++        from tee import *
++        real_stdout = sys.stdout
++        sys.stdout = tee = Tee([real_stdout, open('log', 'w')])
++        ...
++        print 'This goes to both standard output and the log file.'
++        ...
++        sys.stdout = real_stdout # Restores normal output. 
++        print 'This goes to only standard output and not the log file.'
++        ...
++        sys.stdout = tee # Restores output to both stdout and the log file.
++        print 'This goes to both standard output and the log file.'
+     '''
+     def __init__(self,list_of_open_files):
+         '''
+-        Accepts one argument, a list of files that are already open. 
++        Accepts one argument, a list of files that are already open for 
++        writing. 
+         '''
+         self.files=list_of_open_files
+     def write(self,s):
