@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: reduce
+Version: 2.1.0
+Summary: A program for making pretty pictures of a whole directory test data at once.
+Home-page: tbd
+Author: Bryan W. Harris
+Author-email: brywilharris@gmail.com
+License: GPL v3 or later
+Description: A program for making pretty pictures of a whole directory test data at once.
+Platform: UNKNOWN
