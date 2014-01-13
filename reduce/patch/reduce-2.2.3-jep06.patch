@@ -1,0 +1,39 @@
+diff -Naur reduce-2.2.3-jep05/dataFile.py reduce-2.2.3-jep06/dataFile.py
+--- reduce-2.2.3-jep05/dataFile.py	2011-07-28 10:54:00.000000000 -0400
++++ reduce-2.2.3-jep06/dataFile.py	2011-07-28 18:30:54.114585637 -0400
+@@ -359,7 +359,7 @@
+ 
+ 
+ class DataFile_SL(DataFile):
+-    ZERO_LOAD = range(3+1,3+1+1) #!!! what is the clean Python way of extending the equivalent of a C enumerated type? 
++    ZERO_LOAD = range(3,3+1) #!!! what is the clean Python way of extending the equivalent of a C enumerated type? 
+ 
+     def __init__(self, name, *args, **kwargs):
+         DataFile.__init__(self, *args, **kwargs)
+diff -Naur reduce-2.2.3-jep05/HISTORY reduce-2.2.3-jep06/HISTORY
+--- reduce-2.2.3-jep05/HISTORY	2011-07-28 17:21:35.134871095 -0400
++++ reduce-2.2.3-jep06/HISTORY	2011-07-28 18:32:11.565611946 -0400
+@@ -1,5 +1,11 @@
+ 2011-07-28 reduce-2.2.3-jep05 James Prior
+ 
++    dataFile.py
++
++        Fixed harmless off by one bug for value of ZERO_LOAD
++
++2011-07-28 reduce-2.2.3-jep05 James Prior
++
+     reducePlot.py
+ 
+         Named a magic number: MAX_PLOT_POINTS = 500
+diff -Naur reduce-2.2.3-jep05/MD5SUM reduce-2.2.3-jep06/MD5SUM
+--- reduce-2.2.3-jep05/MD5SUM	2011-07-28 17:23:27.049464137 -0400
++++ reduce-2.2.3-jep06/MD5SUM	2011-07-28 18:32:42.841218760 -0400
+@@ -1,6 +1,6 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-6db9e7a3fdd32ff07ee2dadc1bed6148  dataFile.py
+-3df4a8ad0dfd6862fca69462451f5893  HISTORY
++a1fa1ddbaf49f9763a215ddaac73ae5b  dataFile.py
++4139175d062daf63f4b20eca81715472  HISTORY
+ 7eb888b27c8dfbfe88545385dc12a12b  measurementFile.py
+ 906d1d396a15b7f49fef8bf4db791c58  reducePlot.py
+ 17e163e9d29bfa64d4aa8c2e6dc8fea1  rlo.py

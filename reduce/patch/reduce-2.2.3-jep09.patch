@@ -1,0 +1,189 @@
+diff -Naur reduce-2.2.3-jep08/dataFile.py reduce-2.2.3-jep09/dataFile.py
+--- reduce-2.2.3-jep08/dataFile.py	2011-07-28 23:23:03.570210538 -0400
++++ reduce-2.2.3-jep09/dataFile.py	2011-07-29 20:09:59.841642630 -0400
+@@ -16,6 +16,10 @@
+ #    You should have received a copy of the GNU General Public License
+ #    along with Reduce.  If not, see <http://www.gnu.org/licenses/>.
+ 
++'''
++This module does most of the work. 
++'''
++
+ import os
+ import csv
+ import tempfile
+@@ -36,6 +40,7 @@
+ class DataFile:
+     has_measurement_file = False
+     TIME, STROKE, LOAD = range(3) #!!! is there a better way of associating these enumerated types with their use? 
++    #!!! TIME, STROKE, and LOAD seem to be column indexes (starting at zero) for data of the *.txt input and output files. 
+     column_labels = []
+     if False: #!!! unused variablles, consider deleting them. 
+         test_temp_f = 32.0
+@@ -359,13 +364,14 @@
+ 
+ 
+ class DataFile_SL(DataFile):
+-    ZERO_LOAD = 6 #!!! very suspicious value. Using 3 break program. Why?
++    ZERO_LOAD = 6 #!!! seems to be index for column in output *.txt file, which has "zero load" data. The "zero load" data seems to be the force measurements minus the force when no load. It seems that lower column indexes are reserved for echoing input columns. 
+     #ZERO_LOAD, = range(3,3+1) #!!! what is the clean Python way of extending the equivalent of a C enumerated type? 
++    #print 'ZERO_LOAD:', ZERO_LOAD
+ 
+     def __init__(self, name, *args, **kwargs):
+         DataFile.__init__(self, *args, **kwargs)
+         self.textfile = name
+-        self.traces = [ #!!! use map()? #!!! what do 0,1,2 mean? 
++        self.traces = [ #!!! use map()? #!!! what do 0,1,2 below mean? Do they mean TIME,STROKE,LOAD?
+             DataTrace(self.textfile, 0, ''),
+             DataTrace(self.textfile, 1, ''),
+             DataTrace(self.textfile, 2, '')]
+diff -Naur reduce-2.2.3-jep08/HISTORY reduce-2.2.3-jep09/HISTORY
+--- reduce-2.2.3-jep08/HISTORY	2011-07-28 23:39:44.245630347 -0400
++++ reduce-2.2.3-jep09/HISTORY	2011-07-29 20:06:15.456463533 -0400
+@@ -1,3 +1,10 @@
++2011-07-29 reduce-2.2.3-jep09 James Prior
++
++    rlo.py, dataFile.py, and reducePlot.py
++
++        Started using more docstrings. 
++        Added comments. 
++
+ 2011-07-28 reduce-2.2.3-jep08 James Prior
+ 
+     dataFile.py
+diff -Naur reduce-2.2.3-jep08/MD5SUM reduce-2.2.3-jep09/MD5SUM
+--- reduce-2.2.3-jep08/MD5SUM	2011-07-28 23:42:34.111494841 -0400
++++ reduce-2.2.3-jep09/MD5SUM	2011-07-29 20:15:10.301739617 -0400
+@@ -1,8 +1,8 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-8c27f772ac4d7eee3943e0849aad9654  dataFile.py
+-c893b39968eeb8c1affd1a6d1d27d843  HISTORY
++7e715052631dc834cddaa9077a6b6142  dataFile.py
++65d119dad734f0df81ba49ba1744e50e  HISTORY
+ 7eb888b27c8dfbfe88545385dc12a12b  measurementFile.py
+-906d1d396a15b7f49fef8bf4db791c58  reducePlot.py
+-17e163e9d29bfa64d4aa8c2e6dc8fea1  rlo.py
++6d00adcfeced31b25a43b79a9a83fbff  reducePlot.py
++79508b7d560a8a5d73f33116f5fbb8ca  rlo.py
+ 92f9899ed684652be377a18488d867da  setup.py
+ fa1160c24b07502d528f172c09902ab4  tee.py
+diff -Naur reduce-2.2.3-jep08/reducePlot.py reduce-2.2.3-jep09/reducePlot.py
+--- reduce-2.2.3-jep08/reducePlot.py	2011-07-28 17:23:16.000000000 -0400
++++ reduce-2.2.3-jep09/reducePlot.py	2011-07-29 20:12:42.791594072 -0400
+@@ -21,7 +21,7 @@
+ import tempfile
+ import os
+ 
+-MAX_PLOT_POINTS = 500
++MAX_PLOT_POINTS = 500 #!!! Why bother with a limit? What's the drawback of not limiting them? 
+ 
+ def decimate(array, points):
+     if not isinstance(points, int):
+@@ -32,11 +32,6 @@
+     return(array[::interval])
+ 
+ def plot_time_disp_load(f, extra_label, xmin_pct, xmax_pct, ymin_pct, ymax_pct):
+-    '''
+-    This plots the first 3 columns of an ascii file, 
+-    assuming that the first column is time, second is displacement, 
+-    and the third is load
+-    '''
+     #Get the filename without the (!3 digit!) extension and create a picture name based on that
+ 
+     picturename = f.filebase + '-time-stroke-load' + extra_label + '.png'
+diff -Naur reduce-2.2.3-jep08/rlo.py reduce-2.2.3-jep09/rlo.py
+--- reduce-2.2.3-jep08/rlo.py	2011-07-27 15:12:24.000000000 -0400
++++ reduce-2.2.3-jep09/rlo.py	2011-07-29 20:01:32.040026559 -0400
+@@ -20,6 +20,92 @@
+ #    along with Reduce.  If not, see <http://www.gnu.org/licenses/>.
+ #
+ 
++'''
++Need to use docstrings more. 
++Things are very rough right now. Release early, release often. 
++
++*.txt files
++Plain text files
++Tab characters and only tab characters delimit fields. 
++Excluding other whitespace as field delimiters allows fields to have 
++spaces in them. This is useful in the header lines. 
++Each line in a file has the same number of fields as all the other lines.  
++The fields are also known as columns.
++The fields in the first line have labels, which are ignored by this program. 
++The fields in the second line have the units. 
++   Let's hope that the units are spelled consistently, 
++   so that the program can recognize and use them automatically. 
++   (jep:) I don't think the program does this yet, 
++   but we'll have to make it do so. 
++The rest of the lines have numerical data, one number per field. 
++Scientific notation is fine. 
++For all lines (including but not limited to header lines and 
++numerical data lines), 
++it seems that the columns must be as follows (start at 0 for first column): 
++0 (dataFile.DataFile.TIME) time (unit is one second)
++1 (dataFile.DataFile.STROKE) displacement (aka "stroke") unit is 1 inch
++2 (dataFile.DataFile.LOAD) force (unit is one pound-force)
++It seems that other columns are not used except to repeat them in output file. 
++It seems that there must not be more than six columns. 
++
++It seems that 6 for dataFile.DataFile_SL.ZERO_LOAD (6) is a special trick 
++value index. Maybe lower values are reserved for columns of input. 
++
++Output *.txt file: 
++
++Every line has the same number of fields. 
++Fields are separated by tabs (not any other whitespace). 
++First line is header line. There is only one header line. 
++Fields in the header line either: 
++    o   have meaningful info in the format "Label [unit]" 
++    o   have useless number (e.g. '-3.437E-1'). 
++            The number seems to be from the corresponding field of the 
++            first line of numerical data, and seems to be an artifact of 
++            an "off by one" bug that overwrites data in the output with 
++            header info. 
++            Should these columns have an empty header field? 
++            Should such columns be suppressed from the output altogether? 
++    o   'blank'
++
++Column Index (starting from zero), Header Line, Description: 
++0, Time [sec], echoes column 0 of input (time), reformated in fixed point. 
++1, Stroke [in], seems to be displacement - (minimum of all displacements)
++                does this have early line skew? 
++2, Load [lbf], seems to echo column 2 of input (without first line)
++3, <float number>, seems to be copy of column 3 of input
++4, <float number>, seems to be copy of column 4 of input
++5, 'blank', <empty field>
++6, Zeroed Load [lbf], is this the force - (force when no load) ?
++
++"zero load" == (force when no load) ?
++
++"zero load" is the measured force when the sample is not being touched. 
++Is the weight of the sample part of the zero load?
++If the part of a sample breaks off, 
++should the zero load value decrease by the weight of the broken off part, 
++when that part breaks off? 
++
++I get the impression that the data from the numerical lines of input 
++are copied over to an output structure, then fields 1,2,5,6 of 
++the first line of output are _overwritten_ with header info, 
++causing the loss of the numerical data that used to be there. 
++I'll fix this stuff. 
++
++Column 0 (time) seems to be an exception to the above. 
++
++#!!! It seems that data for the first or second line of numerical data from 
++     the input file is not reflected in the output file. 
++     Is this good? Is this a bug? 
++     Is this related to the detection of the minimum displacement? 
++     Is there line skew in columns of ouputs? 
++
++#!!! Stroke seems to be an artful term. 
++         What is its definition? 
++             Is stroke, just the difference (delta) between the 
++             displacement of a particular line, and the lowest displacement? 
++         Compare and contrast stroke with displacement. 
++'''
++
+ import tempfile
+ import shutil
+ import os

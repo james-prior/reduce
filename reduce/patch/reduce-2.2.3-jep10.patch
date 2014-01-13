@@ -1,0 +1,37 @@
+diff -Naur reduce-2.2.3-jep09/dataFile.py reduce-2.2.3-jep10/dataFile.py
+--- reduce-2.2.3-jep09/dataFile.py	2011-07-29 20:09:59.000000000 -0400
++++ reduce-2.2.3-jep10/dataFile.py	2011-08-03 19:20:02.239426075 -0400
+@@ -640,6 +640,8 @@
+         return data
+ 
+     def tdd_split(self, line):
++        return [field.strip() for field in line.split('\t')]
++        # old code preserved below
+         words = []
+         while line != '':
+             temp = line.partition('\t')
+diff -Naur reduce-2.2.3-jep09/HISTORY reduce-2.2.3-jep10/HISTORY
+--- reduce-2.2.3-jep09/HISTORY	2011-07-29 20:06:15.000000000 -0400
++++ reduce-2.2.3-jep10/HISTORY	2011-08-03 19:23:29.620818938 -0400
+@@ -1,3 +1,9 @@
++2011-08-03 reduce-2.2.3-jep10 James Prior
++
++    dataFile.py
++
++        Simplified tdd_split(). 
++
+ 2011-07-29 reduce-2.2.3-jep09 James Prior
+ 
+     rlo.py, dataFile.py, and reducePlot.py
+diff -Naur reduce-2.2.3-jep09/MD5SUM reduce-2.2.3-jep10/MD5SUM
+--- reduce-2.2.3-jep09/MD5SUM	2011-07-29 20:15:10.000000000 -0400
++++ reduce-2.2.3-jep10/MD5SUM	2011-08-03 19:31:09.871032809 -0400
+@@ -1,6 +1,6 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-7e715052631dc834cddaa9077a6b6142  dataFile.py
+-65d119dad734f0df81ba49ba1744e50e  HISTORY
++c2a0722f49cb17ad538ed28a9b4106ae  dataFile.py
++bd22d214781bd3709d4d1dfe7c35ee89  HISTORY
+ 7eb888b27c8dfbfe88545385dc12a12b  measurementFile.py
+ 6d00adcfeced31b25a43b79a9a83fbff  reducePlot.py
+ 79508b7d560a8a5d73f33116f5fbb8ca  rlo.py

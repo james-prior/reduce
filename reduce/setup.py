@@ -19,8 +19,8 @@
 
 from distutils.core import setup
 setup(name='reduce',
-      version='2.1.0',
-      py_modules=['dataFile','reducePlot','measurementFile'],
+      version='2.2.4',
+      py_modules=['dataFile','reducePlot','measurementFile','tee'],
       scripts=['rlo.py'],
       description='A program for making pretty pictures of a whole directory test data at once.',
       author='Bryan W. Harris',

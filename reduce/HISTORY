@@ -1,3 +1,91 @@
+2011-08-04 reduce-2.2.3-bwh01 Bryan Harris
+
+    setup.py
+
+        Updated the version number to 2.2.4 and added tee.py to the modules.  
+        Missing tee.py was a bug which would cause an install to fail.
+
+2011-08-03 reduce-2.2.3-jep10 James Prior
+
+    dataFile.py
+
+        Simplified tdd_split(). 
+
+2011-07-29 reduce-2.2.3-jep09 James Prior
+
+    rlo.py, dataFile.py, and reducePlot.py
+
+        Started using more docstrings. 
+        Added comments. 
+
+2011-07-28 reduce-2.2.3-jep08 James Prior
+
+    dataFile.py
+
+        Changed value of ZERO_LOAD to 6 (from 3). 
+        That got the program to generate correct plot images again, 
+        but I don't know why the value of ZERO_LOAD can cause 
+        such trouble. This warrants study. 
+
+        Fixed magic number indexes to self.traces[]:
+           0 --> self.TIME
+           1 --> self.STROKE
+
+2011-07-28 reduce-2.2.3-jep07 James Prior
+
+    dataFile.py
+
+        Fixed real ZERO_LOAD initialization bug (3 not [3]). 
+        Fixed magic number indexes from 6 to ZERO_LOAD. 
+        However using value of 3 for ZERO_LOAD (instead of 6) 
+        causes generation of bad plot images. 
+
+2011-07-28 reduce-2.2.3-jep06 James Prior
+
+    dataFile.py
+
+        Fixed harmless off by one bug for value of ZERO_LOAD
+        (ZERO_LOAD has a new bad value of [3])
+
+2011-07-28 reduce-2.2.3-jep05 James Prior
+
+    reducePlot.py
+
+        Named a magic number: MAX_PLOT_POINTS = 500
+        (ZERO_LOAD still has a bad value of [4])
+
+2011-07-28 reduce-2.2.3-jep04 James Prior
+
+    dataFile.py
+
+        Renamed ZL --> ZERO_LOAD
+        (and changed its value from 6 to [4], so this version does not work.)
+
+2011-07-28 reduce-2.2.3-jep03 James Prior
+
+    measurementFile.py
+
+        Cleaned up imports. 
+
+2011-07-28 reduce-2.2.3-jep02 James Prior
+
+    tee.py
+
+        Slightly improved docstring for Tee class. 
+
+2011-07-27 reduce-2.2.3-jep01 James Prior
+
+    measurementFile.py
+
+        Restored first line of long if statement. 
+
+2011-07-27 reduce-2.2.3 Bryan Harris
+
+    measurementFile.py
+
+        Changed some indexes for where to look for 'Specimen ID'. 
+        Deleted first line of long if statement. 
+
 2011-07-27 reduce-2.2.2-jep12 James Prior
 
     dataFile.py, reducePlot.py, and measurementFile.py

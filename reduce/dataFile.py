@@ -16,6 +16,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Reduce.  If not, see <http://www.gnu.org/licenses/>.
 
+'''
+This module does most of the work. 
+'''
+
 import os
 import csv
 import tempfile
@@ -36,6 +40,7 @@ def strip_term(line):
 class DataFile:
     has_measurement_file = False
     TIME, STROKE, LOAD = range(3) #!!! is there a better way of associating these enumerated types with their use? 
+    #!!! TIME, STROKE, and LOAD seem to be column indexes (starting at zero) for data of the *.txt input and output files. 
     column_labels = []
     if False: #!!! unused variablles, consider deleting them. 
         test_temp_f = 32.0
@@ -359,12 +364,14 @@ class DataFile:
 
 
 class DataFile_SL(DataFile):
-    ZL = 6 #!!! need better name for this constant !!! value is suspect also
+    ZERO_LOAD = 6 #!!! seems to be index for column in output *.txt file, which has "zero load" data. The "zero load" data seems to be the force measurements minus the force when no load. It seems that lower column indexes are reserved for echoing input columns. 
+    #ZERO_LOAD, = range(3,3+1) #!!! what is the clean Python way of extending the equivalent of a C enumerated type? 
+    #print 'ZERO_LOAD:', ZERO_LOAD
 
     def __init__(self, name, *args, **kwargs):
         DataFile.__init__(self, *args, **kwargs)
         self.textfile = name
-        self.traces = [ #!!! use map()?
+        self.traces = [ #!!! use map()? #!!! what do 0,1,2 below mean? Do they mean TIME,STROKE,LOAD?
             DataTrace(self.textfile, 0, ''),
             DataTrace(self.textfile, 1, ''),
             DataTrace(self.textfile, 2, '')]
@@ -379,15 +386,15 @@ class DataFile_SL(DataFile):
         self.column_labels[self.LOAD] = 'Load [lbf]'
         self.column_labels[self.STROKE] = 'Stroke [in]'
 
-    def get_zl_trace(self): return self.traces[self.ZL]
-    def get_zl_data(self): return self.traces[self.ZL].get_data()
+    def get_zl_trace(self): return self.traces[self.ZERO_LOAD]
+    def get_zl_data(self): return self.traces[self.ZERO_LOAD].get_data()
 
     def log_info(self, logfile, end_line):
         print >>logfile, '%s\t%s\t%s' % (
             os.path.basename(self.filebase),
             str(self.machine_rate),
-            str(max(self.traces[6].data[:end_line])))
-        #print self.traces[6].data[:end_line]
+            str(max(self.traces[self.ZERO_LOAD].data[:end_line])))
+        #print self.traces[self.ZERO_LOAD].data[:end_line]
 
     def moby_foo(
         self,
@@ -466,7 +473,7 @@ class DataFile_SL(DataFile):
         for i in range(len(new_column)):
             new_column[i] -= loadshift
 
-        while self.number_of_columns < self.ZL:
+        while self.number_of_columns < self.ZERO_LOAD:
             self.append_column([], 'blank')
 
         self.append_column(new_column, 'Zeroed Load [lbf]')
@@ -487,11 +494,11 @@ class DataFile_SL(DataFile):
 
         disp_start = self.traces[self.STROKE].get_point(0)
         print 'Start displacement is:', disp_start
-        self.traces[1].shift_column(-disp_start)
+        self.traces[self.STROKE].shift_column(-disp_start)
 
         time_start = self.traces[self.TIME].get_point(0)
         print 'Start time is:', time_start
-        self.traces[0].shift_column(-time_start)
+        self.traces[self.TIME].shift_column(-time_start)
 
         # Plot the time and displacement shifted data. 
         plot_time_zeroed_load(self)
@@ -538,7 +545,7 @@ class DataFile_SL(DataFile):
             self.append_column(new_column, 'Nominal Strain [in/in]')
             nom_strain = len(self.traces)-1
 
-            new_column = self.ZL
+            new_column = self.ZERO_LOAD
             for i in range(len(new_column)):
                 new_column[i] /= self.cs_area_in2
             self.append_column(new_column, 'Stress [psi]')
@@ -633,6 +640,8 @@ class DataTrace:
         return data
 
     def tdd_split(self, line):
+        return [field.strip() for field in line.split('\t')]
+        # old code preserved below
         words = []
         while line != '':
             temp = line.partition('\t')

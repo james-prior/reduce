@@ -25,16 +25,21 @@ class Tee:
     one uses a single print that redirects to an instance of this class.  
 
     For example, instead of doing: 
+
         print 'big long ugly messy stuff'
         print >>file1 'big long ugly messy stuff'
         print >>file2 'big long ugly messy stuff'
-    one does the following:
+
+    one can do the following:
+
         import sys
         from tee import *
         tee=Tee([sys.stdout,file1,file2])
         ...
         print >>tee 'big long ugly messy stuff'
+
     or even:
+
         import sys
         from tee import *
         real_stdout = sys.stdout

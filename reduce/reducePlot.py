@@ -21,6 +21,8 @@ import pylab as p
 import tempfile
 import os
 
+MAX_PLOT_POINTS = 500 #!!! Why bother with a limit? What's the drawback of not limiting them? 
+
 def decimate(array, points):
     if not isinstance(points, int):
         raise Error, 'number of points should be an integer'
@@ -30,11 +32,6 @@ def decimate(array, points):
     return(array[::interval])
 
 def plot_time_disp_load(f, extra_label, xmin_pct, xmax_pct, ymin_pct, ymax_pct):
-    '''
-    This plots the first 3 columns of an ascii file, 
-    assuming that the first column is time, second is displacement, 
-    and the third is load
-    '''
     #Get the filename without the (!3 digit!) extension and create a picture name based on that
 
     picturename = f.filebase + '-time-stroke-load' + extra_label + '.png'
@@ -113,8 +110,8 @@ def plot_rate_measure(f, start_line, end_line):
 
     picturename = f.filebase + '-rate_measure.png'
     p.title('Time - Disp - Load' + '\n' + os.path.basename(f.filebase))
-    p.plot(decimate(time_trace[start_line:end_line], 500), \
-        decimate(stroke_trace[start_line:end_line], 500), \
+    p.plot(decimate(time_trace[start_line:end_line], MAX_PLOT_POINTS),
+        decimate(stroke_trace[start_line:end_line], MAX_PLOT_POINTS),
         'b-', label='Disp')
 
     stroke_rate = f.find_rate(start_line, end_line)
@@ -131,8 +128,8 @@ def plot_rate_measure(f, start_line, end_line):
     p.legend(loc=2)
 
     p.twinx()
-    p.plot(decimate(time_trace[start_line:end_line], 500),
-        decimate(f.get_zl_data()[start_line:end_line], 500),
+    p.plot(decimate(time_trace[start_line:end_line], MAX_PLOT_POINTS),
+        decimate(f.get_zl_data()[start_line:end_line], MAX_PLOT_POINTS),
         'r--', label='Load')
     v = p.axis()
     p.axis((v[0], v[1], 0, v[3]))

@@ -1,0 +1,99 @@
+diff -Naur reduce-2.2.3-jep07/dataFile.py reduce-2.2.3-jep08/dataFile.py
+--- reduce-2.2.3-jep07/dataFile.py	2011-07-28 22:05:20.824829184 -0400
++++ reduce-2.2.3-jep08/dataFile.py	2011-07-28 23:23:03.570210538 -0400
+@@ -359,7 +359,8 @@
+ 
+ 
+ class DataFile_SL(DataFile):
+-    ZERO_LOAD, = range(3,3+1) #!!! what is the clean Python way of extending the equivalent of a C enumerated type? 
++    ZERO_LOAD = 6 #!!! very suspicious value. Using 3 break program. Why?
++    #ZERO_LOAD, = range(3,3+1) #!!! what is the clean Python way of extending the equivalent of a C enumerated type? 
+ 
+     def __init__(self, name, *args, **kwargs):
+         DataFile.__init__(self, *args, **kwargs)
+@@ -386,8 +387,8 @@
+         print >>logfile, '%s\t%s\t%s' % (
+             os.path.basename(self.filebase),
+             str(self.machine_rate),
+-            str(max(self.traces[ZERO_LOAD].data[:end_line])))
+-        #print self.traces[ZERO_LOAD].data[:end_line]
++            str(max(self.traces[self.ZERO_LOAD].data[:end_line])))
++        #print self.traces[self.ZERO_LOAD].data[:end_line]
+ 
+     def moby_foo(
+         self,
+@@ -487,11 +488,11 @@
+ 
+         disp_start = self.traces[self.STROKE].get_point(0)
+         print 'Start displacement is:', disp_start
+-        self.traces[1].shift_column(-disp_start)
++        self.traces[self.STROKE].shift_column(-disp_start)
+ 
+         time_start = self.traces[self.TIME].get_point(0)
+         print 'Start time is:', time_start
+-        self.traces[0].shift_column(-time_start)
++        self.traces[self.TIME].shift_column(-time_start)
+ 
+         # Plot the time and displacement shifted data. 
+         plot_time_zeroed_load(self)
+diff -Naur reduce-2.2.3-jep07/HISTORY reduce-2.2.3-jep08/HISTORY
+--- reduce-2.2.3-jep07/HISTORY	2011-07-28 22:04:52.737182295 -0400
++++ reduce-2.2.3-jep08/HISTORY	2011-07-28 23:39:44.245630347 -0400
+@@ -1,27 +1,45 @@
++2011-07-28 reduce-2.2.3-jep08 James Prior
++
++    dataFile.py
++
++        Changed value of ZERO_LOAD to 6 (from 3). 
++        That got the program to generate correct plot images again, 
++        but I don't know why the value of ZERO_LOAD can cause 
++        such trouble. This warrants study. 
++
++        Fixed magic number indexes to self.traces[]:
++           0 --> self.TIME
++           1 --> self.STROKE
++
+ 2011-07-28 reduce-2.2.3-jep07 James Prior
+ 
+     dataFile.py
+ 
+         Fixed real ZERO_LOAD initialization bug (3 not [3]). 
+         Fixed magic number indexes from 6 to ZERO_LOAD. 
++        However using value of 3 for ZERO_LOAD (instead of 6) 
++        causes generation of bad plot images. 
+ 
+ 2011-07-28 reduce-2.2.3-jep06 James Prior
+ 
+     dataFile.py
+ 
+         Fixed harmless off by one bug for value of ZERO_LOAD
++        (ZERO_LOAD has a new bad value of [3])
+ 
+ 2011-07-28 reduce-2.2.3-jep05 James Prior
+ 
+     reducePlot.py
+ 
+         Named a magic number: MAX_PLOT_POINTS = 500
++        (ZERO_LOAD still has a bad value of [4])
+ 
+ 2011-07-28 reduce-2.2.3-jep04 James Prior
+ 
+     dataFile.py
+ 
+         Renamed ZL --> ZERO_LOAD
++        (and changed its value from 6 to [4], so this version does not work.)
+ 
+ 2011-07-28 reduce-2.2.3-jep03 James Prior
+ 
+diff -Naur reduce-2.2.3-jep07/MD5SUM reduce-2.2.3-jep08/MD5SUM
+--- reduce-2.2.3-jep07/MD5SUM	2011-07-28 22:08:34.018400414 -0400
++++ reduce-2.2.3-jep08/MD5SUM	2011-07-28 23:42:34.111494841 -0400
+@@ -1,6 +1,6 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-e7278b9b9211e740401b31b983742500  dataFile.py
+-4a87f13d99678d870e63d6ade8beab3d  HISTORY
++8c27f772ac4d7eee3943e0849aad9654  dataFile.py
++c893b39968eeb8c1affd1a6d1d27d843  HISTORY
+ 7eb888b27c8dfbfe88545385dc12a12b  measurementFile.py
+ 906d1d396a15b7f49fef8bf4db791c58  reducePlot.py
+ 17e163e9d29bfa64d4aa8c2e6dc8fea1  rlo.py

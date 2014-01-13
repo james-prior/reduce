@@ -1,0 +1,51 @@
+diff -Naur reduce-2.2.3-jep06/dataFile.py reduce-2.2.3-jep07/dataFile.py
+--- reduce-2.2.3-jep06/dataFile.py	2011-07-28 18:30:54.114585637 -0400
++++ reduce-2.2.3-jep07/dataFile.py	2011-07-28 22:05:20.824829184 -0400
+@@ -359,7 +359,7 @@
+ 
+ 
+ class DataFile_SL(DataFile):
+-    ZERO_LOAD = range(3,3+1) #!!! what is the clean Python way of extending the equivalent of a C enumerated type? 
++    ZERO_LOAD, = range(3,3+1) #!!! what is the clean Python way of extending the equivalent of a C enumerated type? 
+ 
+     def __init__(self, name, *args, **kwargs):
+         DataFile.__init__(self, *args, **kwargs)
+@@ -386,8 +386,8 @@
+         print >>logfile, '%s\t%s\t%s' % (
+             os.path.basename(self.filebase),
+             str(self.machine_rate),
+-            str(max(self.traces[6].data[:end_line])))
+-        #print self.traces[6].data[:end_line]
++            str(max(self.traces[ZERO_LOAD].data[:end_line])))
++        #print self.traces[ZERO_LOAD].data[:end_line]
+ 
+     def moby_foo(
+         self,
+diff -Naur reduce-2.2.3-jep06/HISTORY reduce-2.2.3-jep07/HISTORY
+--- reduce-2.2.3-jep06/HISTORY	2011-07-28 18:32:11.565611946 -0400
++++ reduce-2.2.3-jep07/HISTORY	2011-07-28 22:04:52.737182295 -0400
+@@ -1,4 +1,11 @@
+-2011-07-28 reduce-2.2.3-jep05 James Prior
++2011-07-28 reduce-2.2.3-jep07 James Prior
++
++    dataFile.py
++
++        Fixed real ZERO_LOAD initialization bug (3 not [3]). 
++        Fixed magic number indexes from 6 to ZERO_LOAD. 
++
++2011-07-28 reduce-2.2.3-jep06 James Prior
+ 
+     dataFile.py
+ 
+diff -Naur reduce-2.2.3-jep06/MD5SUM reduce-2.2.3-jep07/MD5SUM
+--- reduce-2.2.3-jep06/MD5SUM	2011-07-28 18:32:42.841218760 -0400
++++ reduce-2.2.3-jep07/MD5SUM	2011-07-28 22:08:34.018400414 -0400
+@@ -1,6 +1,6 @@
+ d22d26f5e12df29d258779afb9c24321  AUTHORS
+-a1fa1ddbaf49f9763a215ddaac73ae5b  dataFile.py
+-4139175d062daf63f4b20eca81715472  HISTORY
++e7278b9b9211e740401b31b983742500  dataFile.py
++4a87f13d99678d870e63d6ade8beab3d  HISTORY
+ 7eb888b27c8dfbfe88545385dc12a12b  measurementFile.py
+ 906d1d396a15b7f49fef8bf4db791c58  reducePlot.py
+ 17e163e9d29bfa64d4aa8c2e6dc8fea1  rlo.py

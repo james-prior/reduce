@@ -20,6 +20,92 @@
 #    along with Reduce.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+'''
+Need to use docstrings more. 
+Things are very rough right now. Release early, release often. 
+
+*.txt files
+Plain text files
+Tab characters and only tab characters delimit fields. 
+Excluding other whitespace as field delimiters allows fields to have 
+spaces in them. This is useful in the header lines. 
+Each line in a file has the same number of fields as all the other lines.  
+The fields are also known as columns.
+The fields in the first line have labels, which are ignored by this program. 
+The fields in the second line have the units. 
+   Let's hope that the units are spelled consistently, 
+   so that the program can recognize and use them automatically. 
+   (jep:) I don't think the program does this yet, 
+   but we'll have to make it do so. 
+The rest of the lines have numerical data, one number per field. 
+Scientific notation is fine. 
+For all lines (including but not limited to header lines and 
+numerical data lines), 
+it seems that the columns must be as follows (start at 0 for first column): 
+0 (dataFile.DataFile.TIME) time (unit is one second)
+1 (dataFile.DataFile.STROKE) displacement (aka "stroke") unit is 1 inch
+2 (dataFile.DataFile.LOAD) force (unit is one pound-force)
+It seems that other columns are not used except to repeat them in output file. 
+It seems that there must not be more than six columns. 
+
+It seems that 6 for dataFile.DataFile_SL.ZERO_LOAD (6) is a special trick 
+value index. Maybe lower values are reserved for columns of input. 
+
+Output *.txt file: 
+
+Every line has the same number of fields. 
+Fields are separated by tabs (not any other whitespace). 
+First line is header line. There is only one header line. 
+Fields in the header line either: 
+    o   have meaningful info in the format "Label [unit]" 
+    o   have useless number (e.g. '-3.437E-1'). 
+            The number seems to be from the corresponding field of the 
+            first line of numerical data, and seems to be an artifact of 
+            an "off by one" bug that overwrites data in the output with 
+            header info. 
+            Should these columns have an empty header field? 
+            Should such columns be suppressed from the output altogether? 
+    o   'blank'
+
+Column Index (starting from zero), Header Line, Description: 
+0, Time [sec], echoes column 0 of input (time), reformated in fixed point. 
+1, Stroke [in], seems to be displacement - (minimum of all displacements)
+                does this have early line skew? 
+2, Load [lbf], seems to echo column 2 of input (without first line)
+3, <float number>, seems to be copy of column 3 of input
+4, <float number>, seems to be copy of column 4 of input
+5, 'blank', <empty field>
+6, Zeroed Load [lbf], is this the force - (force when no load) ?
+
+"zero load" == (force when no load) ?
+
+"zero load" is the measured force when the sample is not being touched. 
+Is the weight of the sample part of the zero load?
+If the part of a sample breaks off, 
+should the zero load value decrease by the weight of the broken off part, 
+when that part breaks off? 
+
+I get the impression that the data from the numerical lines of input 
+are copied over to an output structure, then fields 1,2,5,6 of 
+the first line of output are _overwritten_ with header info, 
+causing the loss of the numerical data that used to be there. 
+I'll fix this stuff. 
+
+Column 0 (time) seems to be an exception to the above. 
+
+#!!! It seems that data for the first or second line of numerical data from 
+     the input file is not reflected in the output file. 
+     Is this good? Is this a bug? 
+     Is this related to the detection of the minimum displacement? 
+     Is there line skew in columns of ouputs? 
+
+#!!! Stroke seems to be an artful term. 
+         What is its definition? 
+             Is stroke, just the difference (delta) between the 
+             displacement of a particular line, and the lowest displacement? 
+         Compare and contrast stroke with displacement. 
+'''
+
 import tempfile
 import shutil
 import os

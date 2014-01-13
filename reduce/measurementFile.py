@@ -16,11 +16,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Reduce.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import xlrd
-import tempfile
-
 import math
+
+import xlrd
 
 class MeasFile:
     filename = ''
@@ -42,6 +40,7 @@ class MeasFile:
         self.filename = filename
         self.book = xlrd.open_workbook(self.filename)
         for sheet in self.book.sheets():
+            if (sheet.nrows > 0
             and sheet.row(0)[4].value.find('Measurement Sheet') != -1
             and sheet.row(6)[0].value.find('Specimen ID') != -1
             and sheet.row(6)[5].value.find('Specimen ID') != -1):
