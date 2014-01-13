@@ -1,0 +1,78 @@
+diff -Naur reduce-2.2.0-jep02/HISTORY reduce-2.2.0-jep03/HISTORY
+--- reduce-2.2.0-jep02/HISTORY	2011-07-21 14:24:54.614099680 -0400
++++ reduce-2.2.0-jep03/HISTORY	2011-07-21 14:47:16.185233846 -0400
+@@ -1,10 +1,25 @@
++2011-07-21 reduce-2.2.0-jep03
++
++    rlo.py
++
++        Fixes _possible_ bug. 
++
++        Lines 219-221 has print statements that output only to 
++        standard output, although neighboring print statements output 
++        to both standard output and log_file via the >>t technique. 
++        I do not know that this is a bug, but it smells like one, 
++        so I added the ">>t, " stuff to those prints. 
++
++    New code tries to follow PEP 8 -- Style Guide for Python Code
++    http://www.python.org/dev/peps/pep-0008/
++
+ 2011-07-21 reduce-2.2.0-jep02
+ 
+     rlo.py
+ 
+         Simplified printing same stuff to multiple outputs. 
+         Instead of having separate print statements for each output, 
+-        one now has only a single print statements for multiple outputs. 
++        one now has only a single print statement for multiple outputs. 
+ 
+         For example, the old way:
+ 
+@@ -24,9 +39,6 @@
+             print >>t, 'user:', os.times()[0], 's'
+             print >>t, 'system:', os.times()[1], 's' 
+ 
+-        New code tries to follow PEP 8 -- Style Guide for Python Code
+-        http://www.python.org/dev/peps/pep-0008/
+-
+     tee.py
+ 
+         Created.  Simplifies writing to multiple files. 
+@@ -36,6 +48,9 @@
+ 
+         Inspired by Unix tee program. 
+ 
++    New code tries to follow PEP 8 -- Style Guide for Python Code
++    http://www.python.org/dev/peps/pep-0008/
++
+ 2011-07-21 reduce-2.2.0-jep01
+ 
+     rlo.py
+@@ -64,8 +79,8 @@
+         that was avaiable for Bodhi linux 1.1.0. reduce seemed to 
+         work with the older 0.6.1-2 version of xlrd. 
+ 
+-        New code tries to follow PEP 8 -- Style Guide for Python Code
+-        http://www.python.org/dev/peps/pep-0008/
+-
+     Created HISTORY file to document changes. 
+ 
++    New code tries to follow PEP 8 -- Style Guide for Python Code
++    http://www.python.org/dev/peps/pep-0008/
++
+diff -Naur reduce-2.2.0-jep02/rlo.py reduce-2.2.0-jep03/rlo.py
+--- reduce-2.2.0-jep02/rlo.py	2011-07-21 14:30:17.198044254 -0400
++++ reduce-2.2.0-jep03/rlo.py	2011-07-21 14:42:59.628459202 -0400
+@@ -216,9 +216,9 @@
+         if thisDataFile.Load_Drop_Line<thisDataFile.number_of_lines-1:
+             print >>t, 'Load drop found at line:', thisDataFile.Load_Drop_Line
+         
+-        print 'The max area occurs at line:', thisDataFile.Area_End_Line
+-        print 'The 95% stroke value is at line:',
+-        print thisDataFile.End_Of_Stroke_Line
++        print >>t, 'The max area occurs at line:', thisDataFile.Area_End_Line
++        print >>t, 'The 95% stroke value is at line:',
++        print >>t, thisDataFile.End_Of_Stroke_Line
+         
+         print >>t, 'The end of the test is line:', test_end
+         

@@ -1,0 +1,100 @@
+2011-07-21 reduce-2.2.0-jep04
+
+   rlo.py
+
+       Iverted test of __name__ near top of file, so that following 
+       code (which is most of the code) could be dedented one level, 
+       That led to consolidating some statements onto a single line 
+       which had been split across more than one line. 
+
+       Redirected usage() output to standard error.  
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-21 reduce-2.2.0-jep03
+
+    rlo.py
+
+        Fixes _possible_ bug. 
+
+        Lines 219-221 has print statements that output only to 
+        standard output, although neighboring print statements output 
+        to both standard output and log_file via the >>t technique. 
+        I do not know that this is a bug, but it smells like one, 
+        so I added the ">>t, " stuff to those prints. 
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-21 reduce-2.2.0-jep02
+
+    rlo.py
+
+        Simplified printing same stuff to multiple outputs. 
+        Instead of having separate print statements for each output, 
+        one now has only a single print statement for multiple outputs. 
+
+        For example, the old way:
+
+            print time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime())
+            print "user:",os.times()[0],"s"
+            print "system:",os.times()[1],"s"
+            print >>log_file, time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime())
+            print >>log_file, "user:",os.times()[0],"s"
+            print >>log_file, "system:",os.times()[1],"s" 
+
+        was simplified to: 
+
+            t=Tee([sys.stdout,log_file])
+        ...
+            print >>t, time.strftime('%a, %d %b %Y %H:%M:%S +0000', 
+                time.localtime())
+            print >>t, 'user:', os.times()[0], 's'
+            print >>t, 'system:', os.times()[1], 's' 
+
+    tee.py
+
+        Created.  Simplifies writing to multiple files. 
+
+        Instead of repeating a print for each file one needs to output to, 
+        one uses a single print that redirects to an instance of this class.  
+
+        Inspired by Unix tee program. 
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-21 reduce-2.2.0-jep01
+
+    rlo.py
+
+        Refactored code that created reduce_path and image_path 
+        directories, and checked to see if those directories are 
+        writable. 
+
+        This included the elimination of a redundant test of ability 
+        to write to reduce_path directory, which led to big dedent 
+        of following code and subsequent unwrapping of some statements 
+        which had previously been split across more than one line. 
+
+        Error messages were made more accurate and meaningful. 
+        Old error message was about not being able to read, 
+        even though the test was about writing to the directory. 
+        The error message was changed to be about writing. 
+
+        Catches directory creation error and generates error 
+        message and sys.exit()s instead of crashing in Python interpreter. 
+
+        Redirected messages about fatal errors to sys.stderr. 
+
+        Instead of the xlrd-0.7.1 that is bundled with reduce, 
+        I used the older version 0.6.1-2 of the python-xlrd package 
+        that was avaiable for Bodhi linux 1.1.0. reduce seemed to 
+        work with the older 0.6.1-2 version of xlrd. 
+
+    Created HISTORY file to document changes. 
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
