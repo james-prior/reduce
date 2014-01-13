@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 #"Copyright 2009 Bryan Harris"
 #
 #This file is part of reduce.
@@ -21,13 +20,13 @@
 from distutils.core import setup
 setup(name='reduce',
       version='2.1.0',
-      py_modules=['dataFile','reducePlot'],
+      py_modules=['dataFile','reducePlot','measurementFile'],
       scripts=['rlo.py'],
       description='A program for making pretty pictures of a whole directory test data at once.',
       author='Bryan W. Harris',
       author_email='brywilharris@gmail.com',
       license='GPL v3 or later',
-      url='tbd',
+      url='https://launchpad.net/reduce',
       long_description='A program for making pretty pictures of a whole directory test data at once.'
       )
 

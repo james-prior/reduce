@@ -1,26 +1,35 @@
 #"Copyright 2009 Bryan Harris"
 #
-#This file is part of reduce.
+#This file is part of Reduce.
 #
-#    Foobar is free software: you can redistribute it and/or modify
+#    Reduce is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    Foobar is distributed in the hope that it will be useful,
+#    Reduce is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+#    along with Reduce.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import csv
 import tempfile
 import shutil
 
+def strip_term(line):
+    line_end=len(line)
+    for i in range(1,min(line_end,5)):
+        if ord(line[-i]) == 10 or ord(line[-i]) == 13:
+            line_end = line_end - 1
+    line = line[0:line_end]
+    return line
+        
 class dataFile:
+    Has_Measurement_File = False
     TIME     =  0
     STROKE   =  1
     LOAD     =  2
@@ -56,9 +65,27 @@ class dataFile:
             inventory += str(trace) + '\n'
         return inventory
     
+    def find_neg(self,start):
+        count = 0
+        for line in self.getLoadData()[start:]:
+            if float(line) < 0:
+                return start+count
+            count += 1
+            
     def find_load(self, zero_load):
     
         count = 0
+        for line in self.getLoadData():
+            if float(line) > zero_load:
+                return count
+            count += 1
+
+    def find_load_pct(self, zero_pct):
+    
+        count = 0
+        loadData = self.getLoadData()
+        max_load = max(loadData)
+        zero_load = zero_pct * max_load
         for line in self.getLoadData():
             if float(line) > zero_load:
                 return count
@@ -72,7 +99,6 @@ class dataFile:
     def getTimeData(self): return self.traces[self.TIME].getData()
     def get_number_of_lines(self): return self.number_of_lines
     def get_number_of_columns(self, textfile):
-        
         return len(self.traces)
     
     def count_lines(self):
@@ -128,15 +154,18 @@ class dataFile:
         g.write(header)
         try:
             for line in f:
-                if index!=0 :
-                    try:
-                        line=line[:-1]+'\t'+str(column_data[index-1])+'\n'
-                    except(IndexError):
-                        line=line[:-1]+'\t''\n'
-                    #if index < 25 : / line,
-                    g.write(line)
-                index += 1
-                #if index %1000==0 : print index
+                if index == 0:
+                    index += 1
+                    continue
+                else :
+                    if len(strip_term(line))>1:
+                        try:
+                            line=strip_term(line)+'\t'+str(column_data[index-1])+'\n'
+                        except(IndexError):
+                            line=strip_term(line)+'\t''\n'
+                        
+                        g.write(line)
+                        index += 1
         finally:
             f.close()
             g.close()
@@ -147,7 +176,6 @@ class dataFile:
             aTrace=dataTrace(self.textfile,self.number_of_columns-1,heading)
         except(IndexError):
             aTrace=dataTrace(self.textfile,self.number_of_columns-1,"")
-
         self.traces+=[aTrace]
         self.column_labels+=[aTrace.label]
             
@@ -175,17 +203,29 @@ class dataFile:
         self.column_lengths=self.get_column_lengths()
         return self.traces
     
-    def find_start(self):
+    def find_start(self,loadpct,strokepct):
         
         load = self.getLoadData()
+        stroke = self.getStrokeData()
         
-        linenumber = 0
+        loadlinenumber = 0
+        strokelinenumber = 0
+        
         maxload = max(load)
-        for each_load in load[:-21] :
-            linenumber += 1
-            if (load[linenumber+20]) > 0.05*maxload :
-                return linenumber
-        return linenumber
+        maxstroke = max(stroke)
+        ## look for the beginning of the load pulse
+        for each_load in load :
+            loadlinenumber += 1
+            if (each_load) > loadpct*maxload : 
+                #print loadlinenumber, each_load
+                break
+        ## look for the knee in the displacement curve
+        for each_stroke in stroke :
+            strokelinenumber +=1
+            if (each_stroke > strokepct * maxstroke) : 
+                #print strokelinenumber, each_stroke
+                break
+        return max([loadlinenumber,strokelinenumber])
 
     def find_preload(self,size):
         
@@ -216,21 +256,29 @@ class dataFile:
         load = self.getLoadData()
     
         #calculate end based on load drop
-        disp_count = 0
-        dprime = []
-        dcount=len(disp)
-        dfraction=dcount/10
-        for d in disp[0:-(dfraction+1)]:
-            disp_count += 1
-            dprime.append(disp[disp_count+dfraction]-d)
-        disp_count = 0
-        dprime_max = max(dprime)
+        ld_count = 0
+        pprime = []
+        dlength=len(load)
+        dfraction=dlength/100
+        #print dfraction
+        for d in load[0:-(dfraction+1)]:
+            e = load[ld_count+dfraction]
+            ld_count += 1
+            pprime.append(d-e)
+            #if ld_count<14000:print ld_count, d-e
+        #print "ld_count",ld_count
+        ld_count = 0
+        pprime_max = max(pprime)
+        #print "pprime", pprime
+        #print "pprime_max" ,pprime_max
         
-        for each in dprime[:-1] :
-            disp_count += 1
-            if dprime_max - dprime[disp_count] > .99 * dprime_max : break
-        if disp_count>=(dcount-dfraction-5):
-            disp_count=dcount
+        for each in pprime[:-1] :
+            ld_count += 1
+            #print "ld_count", ld_count
+            #print "each_pprime",each
+            if each > .99 * pprime_max : break
+        if ld_count>=(dlength-dfraction-5):
+            ld_count=dlength
 
         #calculate end based on end of stroke
         maxdisp = max(disp)
@@ -247,44 +295,48 @@ class dataFile:
         for each_load in load[:-21] :
             count += 1
             deltaA = (load[count]+each_load)/2 * deltat
-            maxarea=max([area,maxarea])
+            maxarea=max(area,maxarea)
             area += deltaA
+            #print area
             
-        count = 0
+        area_count = 0
         area2 = 0
         for each_load in load[:-1] :
-            count += 1
-            area2 += (load[count]+each_load)/2 * deltat
-#            print "area",area,"area2", area2
+            area_count += 1
+            area2 += (load[area_count]+each_load)/2 * deltat
+            #print "area_count",area_count,"area",area,"area2", area2
             if ((maxarea - area2) < .015*area) : 
                 break
-        for each_load in load[count:-1] :
+        for each_load in load[area_count:-1] :
             if each_load>0 :
-                count += 1
+                area_count += 1
             else :
                 break
 
-        self.Load_Drop_Line = count
-        self.Area_End_Line = disp_count
+        self.Load_Drop_Line = ld_count
+        #print self.Load_Drop_Line
+        self.Area_End_Line = area_count
+        #print self.Area_End_Line
         self.End_Of_Stroke_Line = stroke_count
-        
+        #print self.End_Of_Stroke_Line
+               
         #check for very low counts and return reasonable lowest value
-        if count<10 and disp_count<10 and stroke_count<10 :
+        if area_count<10 and ld_count<10 and stroke_count<10 :
             return size(load)
-        elif disp_count<10 and stroke_count<10:
-            return count
-        elif count<10 and stroke_count<10:
-            return disp_count
-        elif count<10 and disp_count<10:
+        elif ld_count<10 and stroke_count<10:
+            return area_count
+        elif area_count<10 and stroke_count<10:
+            return ld_count
+        elif area_count<10 and ld_count<10:
             return stroke_count
-        elif count<10 :
-            return min([disp_count, stroke_count])+1
-        elif disp_count<10 :
-            return min([count, stroke_count])+1
+        elif area_count<10 :
+            return min([ld_count, stroke_count])+1
+        elif ld_count<10 :
+            return min([area_count, stroke_count])+1
         elif stroke_count<10 :
-            return min([count, disp_count])+1
+            return min([area_count, ld_count])+1
         else:
-            return min([count, disp_count, stroke_count])+1
+            return min([area_count, ld_count, stroke_count])+1
         
     def find_rate(self,pulse_start,pulse_end):
         time = self.getTimeData()
@@ -299,16 +351,13 @@ class dataFile:
         self.Machine_Rate = rate
         return rate
     
-    def log_info(self, logfile):
-        
-        logfile.write("\n" + self.filebase+ "\t"+ str(self.Machine_Rate))
         
 class dataFile_SL(dataFile):
     BLANK1   =  3
     BLANK2   =  4
     BLANK3   =  5
     ZL       =  6
-    STRAIN   =  7
+    NOM_STRAIN   =  7
     PSI      =  8
     KSI      =  9
     MPA      = 10
@@ -329,11 +378,18 @@ class dataFile_SL(dataFile):
     def getZLTrace(self): return self.traces[self.ZL]
     def getZLData(self): return self.traces[self.ZL].getData()
     
+    def log_info(self, logfile, end_line):
+        logfile.write("\n" + self.filebase+ "\t"+ str(self.Machine_Rate)+ "\t"+ str(max(self.traces[6].data[:end_line])))
+        #print self.traces[6].data[:end_line]
+
+    
 class dataTrace:
     def __init__(self, filename, column, label, *args, **kwargs):
         
         self.textfile=filename
         self.column=column
+        self.length=0
+        self.data=self.getData()
         self.length=self.getLength()
         if label == "":
             self.label=self.getLabel()
@@ -347,8 +403,10 @@ class dataTrace:
         
     def getLength(self):
         
-        length = 0
-        if os.access(self.textfile, os.R_OK):
+        length = len(self.data)
+        if length!=0:
+            return length
+        elif os.access(self.textfile, os.R_OK):
             f = open(self.textfile, 'rU')
             reader = csv.reader(open(self.textfile, 'rU'), delimiter='\t')
             length = 0
@@ -384,8 +442,9 @@ class dataTrace:
         return self.label
         
     def getData(self):
-        
-        if os.access(self.textfile, os.R_OK):
+        if self.length!=0:
+            return self.data   
+        elif os.access(self.textfile, os.R_OK):
             f = open(self.textfile, 'rU')
             reader = csv.reader(f, delimiter='\t')
             data = []
@@ -397,18 +456,18 @@ class dataTrace:
                 if skip == True :
                     skip = False
                     continue
-                if len(line)>self.column:
+                if len(line)>self.column and line[self.column] != "":
                     try:
                         data += [float(line[self.column].strip())]
                     except(IndexError):
                         print "IndexError",len(line),self.column
                     except(ValueError):
-                        print "ValueError",line[self.column],len(line),self.column
+                        print "ValueError","point:",line[self.column],"length:",len(line),"column:",self.column
                         continue
             f.close()
         else:
-            data = NULL
-            print "NO DATA!!!"
+            data = []
+            #print "NO DATA!!!"
         return data
     
     def tdd_split(self,line):
@@ -439,6 +498,7 @@ class dataTrace:
         array = []
         firstline = True
         for line in reader:
+            #print line
             if firstline == True:
                 writer.writerow(line)
                 firstline = False
@@ -450,8 +510,18 @@ class dataTrace:
                     #print line
                     #print output_line
                 except(ValueError):
+                    #print "ValueError",line
+                    continue
+                except(IndexError):
+                    #print "IndexError",line
                     continue
                 writer.writerow(output_line)
         f.close()
         g.close()
+        
         shutil.move(temp,self.textfile)
+        
+        self.length=0
+        self.getData()
+        self.length=self.getLength()
+        
