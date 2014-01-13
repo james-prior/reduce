@@ -1,0 +1,53 @@
+diff -Naur reduce-2.2.0-jep05/HISTORY reduce-2.2.1-jep02/HISTORY
+--- reduce-2.2.0-jep05/HISTORY	2011-07-21 17:46:02.502385779 -0400
++++ reduce-2.2.1-jep02/HISTORY	2011-07-21 19:01:46.969254093 -0400
+@@ -1,3 +1,14 @@
++2011-07-21 reduce-2.2.1-jep02
++
++    rlo.py
++
++        Refactored code that deletes second line of each working_file 
++        in preparation for more important reworking of code to 
++        better decide which lines to delete. 
++
++    New code tries to follow PEP 8 -- Style Guide for Python Code
++    http://www.python.org/dev/peps/pep-0008/
++
+ 2011-07-21 reduce-2.2.0-jep05
+ 
+     rlo.py
+diff -Naur reduce-2.2.0-jep05/rlo.py reduce-2.2.1-jep02/rlo.py
+--- reduce-2.2.0-jep05/rlo.py	2011-07-21 17:44:10.463794294 -0400
++++ reduce-2.2.1-jep02/rlo.py	2011-07-21 18:59:11.223212086 -0400
+@@ -134,17 +134,22 @@
+         
+ # Remove the second header line so the script doesn't choke
+ temp = tempfile.mktemp()
+-for foo in working_files :
+-    shutil.move(foo, temp)
+-    file1 = open(foo, 'w')
+-    file2 = open(temp, 'rU')
++for filename in working_files:
++    shutil.move(filename, temp)
++    dstfile = open(filename, 'w')
++    srcfile = open(temp, 'rU')
+     i=1
+-    for line in file2.readlines():
+-        if i!=2 : file1.write(line)
++    for line in srcfile.readlines():
++        if i != 2:
++            dstfile.write(line)
+         i += 1
+-    file1.close()
+-    file2.close()
+-if (os.access(temp, os.W_OK)) : os.remove(temp)
++    dstfile.close()
++    srcfile.close()
++try:
++    os.remove(temp)
++except:
++    print >>sys.stderr, 'ERROR: Could not remove temp file "%s".' % temp
++    sys.exit(os.EX_USAGE)
+ 
+ # go into the working file directory and create the summary file
+ 

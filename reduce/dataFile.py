@@ -379,7 +379,10 @@ class dataFile_SL(dataFile):
     def getZLData(self): return self.traces[self.ZL].getData()
     
     def log_info(self, logfile, end_line):
-        logfile.write("\n" + self.filebase+ "\t"+ str(self.Machine_Rate)+ "\t"+ str(max(self.traces[6].data[:end_line])))
+        print >>logfile, '%s\t%s\t%s' % (
+            self.filebase,
+            str(self.Machine_Rate),
+            str(max(self.traces[6].data[:end_line])))
         #print self.traces[6].data[:end_line]
 
     

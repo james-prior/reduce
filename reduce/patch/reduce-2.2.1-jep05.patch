@@ -1,0 +1,90 @@
+diff -Naur reduce-2.2.1-jep04/HISTORY reduce-2.2.1-jep05/HISTORY
+--- reduce-2.2.1-jep04/HISTORY	2011-07-21 21:25:14.609041405 -0400
++++ reduce-2.2.1-jep05/HISTORY	2011-07-22 19:01:41.055133344 -0400
+@@ -1,3 +1,20 @@
++2011-07-22 reduce-2.2.1-jep05
++
++    rlo.py
++
++        Create summary.dat file in reduce_path directory 
++        instead of in base_path directory.  
++
++        Grouped summary.dat creation and header writing code together. 
++        Moved directory creation code to allow this. 
++
++        Changed test for directory creation for write instead of read. 
++        Deleted some test code from directory creation code. 
++
++    tee.py
++
++        Added execute permissions.  
++
+ 2011-07-21 reduce-2.2.1-jep04
+ 
+     rlo.py
+diff -Naur reduce-2.2.1-jep04/rlo.py reduce-2.2.1-jep05/rlo.py
+--- reduce-2.2.1-jep04/rlo.py	2011-07-21 21:20:45.792420888 -0400
++++ reduce-2.2.1-jep05/rlo.py	2011-07-22 18:17:13.996662812 -0400
+@@ -84,26 +84,10 @@
+ image_path=os.path.join(reduce_path,"png") 
+ print "image_path: " + image_path
+ 
+-# Where to generate measurement files
+-log_file_name = "script.log"
+-log_file_path = os.path.join(base_path,log_file_name)
+-measurement_file_present=False 
+-meas_file_name = "measurements.csv"  
+-meas_file_path = os.path.join(base_path,meas_file_name)
+-print "meas_file_path: " + meas_file_path
+-summary_file_path = os.path.join(base_path,"summary.dat")
+-print "summary_file_path: " + summary_file_path
+-working_files=[]
+-measurement_file_names=[]
+-measurement_files=[]
+-
+-# Create the directories. 
++# Create directories as needed. 
+ for directory in [reduce_path, image_path]:
+-    if False:
+-        print 'Path is %s' % directory
+-
+-    # Create directory if needed. 
+-    if not os.access(directory, os.R_OK):
++    # Create directory only if needed. 
++    if not os.access(directory, os.W_OK):
+         try:
+             os.mkdir(directory) 
+         except:
+@@ -119,6 +103,23 @@
+             % directory)
+         sys.exit(os.EX_USAGE)
+ 
++# Where to generate measurement files
++log_file_name = "script.log"
++log_file_path = os.path.join(base_path,log_file_name)
++measurement_file_present=False 
++meas_file_name = "measurements.csv"  
++meas_file_path = os.path.join(base_path,meas_file_name)
++print "meas_file_path: " + meas_file_path
++
++summary_file_path = os.path.join(reduce_path, 'summary.dat')
++print 'summary_file_path:', summary_file_path
++summary_file=open(summary_file_path, 'w');
++summary_file.write('Specimen\tRate\tPeak Load')
++
++working_files=[]
++measurement_file_names=[]
++measurement_files=[]
++
+ # Copy the text (*.txt) and Excel (*.xls) files into a working directory and 
+ # make separate lists of them.  
+ os.chdir(reduce_path)
+@@ -172,8 +173,6 @@
+ # go into the working file directory and create the summary file
+ 
+ os.chdir(reduce_path)
+-summary_file=open(summary_file_path, 'w');
+-summary_file.write('Specimen\tRate\tPeak Load')
+ log_file=open(log_file_path, 'w');
+ t=Tee([sys.stdout, log_file])
+ 

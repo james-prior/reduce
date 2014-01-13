@@ -1,0 +1,60 @@
+diff -Naur reduce-2.2.0-jep04/HISTORY reduce-2.2.0-jep05/HISTORY
+--- reduce-2.2.0-jep04/HISTORY	2011-07-21 15:23:49.117664953 -0400
++++ reduce-2.2.0-jep05/HISTORY	2011-07-21 17:46:02.502385779 -0400
+@@ -1,13 +1,22 @@
++2011-07-21 reduce-2.2.0-jep05
++
++    rlo.py
++
++        Refactored code that copies *.txt and *.xls files. 
++
++    New code tries to follow PEP 8 -- Style Guide for Python Code
++    http://www.python.org/dev/peps/pep-0008/
++
+ 2011-07-21 reduce-2.2.0-jep04
+ 
+-   rlo.py
++    rlo.py
+ 
+-       Iverted test of __name__ near top of file, so that following 
+-       code (which is most of the code) could be dedented one level, 
+-       That led to consolidating some statements onto a single line 
+-       which had been split across more than one line. 
++        Iverted test of __name__ near top of file, so that following 
++        code (which is most of the code) could be dedented one level.  
++        That led to consolidating some statements onto a single line 
++        which had been split across more than one line. 
+ 
+-       Redirected usage() output to standard error.  
++        Redirected usage() output to standard error.  
+ 
+     New code tries to follow PEP 8 -- Style Guide for Python Code
+     http://www.python.org/dev/peps/pep-0008/
+diff -Naur reduce-2.2.0-jep04/rlo.py reduce-2.2.0-jep05/rlo.py
+--- reduce-2.2.0-jep04/rlo.py	2011-07-21 15:31:40.419739882 -0400
++++ reduce-2.2.0-jep05/rlo.py	2011-07-21 17:44:10.463794294 -0400
+@@ -119,17 +119,16 @@
+             % directory)
+         sys.exit(os.EX_USAGE)
+ 
+-# move the text files into a working directory and make lists of data files and measurement files
++# Copy the text (*.txt) and Excel (*.xls) files into a working directory and 
++# make separate lists of them.  
+ os.chdir(reduce_path)
+-for somefilename in os.listdir(base_path) :
+-    sourcefile = os.path.join(base_path,somefilename)
+-    destfile = os.path.join(reduce_path,somefilename)
+-    if somefilename.endswith(".txt") or somefilename.endswith(".TXT") :
+-
++for filename in os.listdir(base_path):
++    sourcefile = os.path.join(base_path, filename)
++    destfile = os.path.join(reduce_path, filename)
++    if filename.lower().endswith(".txt"):
+         shutil.copyfile(sourcefile, destfile)
+         working_files.append(destfile)
+-    if somefilename.endswith(".xls") or somefilename.endswith(".XLS") :
+-
++    if filename.lower().endswith(".xls"):
+         shutil.copyfile(sourcefile, destfile)
+         measurement_file_names.append(destfile)
+         

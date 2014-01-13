@@ -1,0 +1,65 @@
+diff -Naur reduce-2.2.1-jep05/dataFile.py reduce-2.2.1-jep06/dataFile.py
+--- reduce-2.2.1-jep05/dataFile.py	2011-07-21 08:07:18.000000000 -0400
++++ reduce-2.2.1-jep06/dataFile.py	2011-07-22 19:17:00.087579544 -0400
+@@ -379,7 +379,10 @@
+     def getZLData(self): return self.traces[self.ZL].getData()
+     
+     def log_info(self, logfile, end_line):
+-        logfile.write("\n" + self.filebase+ "\t"+ str(self.Machine_Rate)+ "\t"+ str(max(self.traces[6].data[:end_line])))
++        print >>logfile, '%s\t%s\t%s' % (
++            self.filebase,
++            str(self.Machine_Rate),
++            str(max(self.traces[6].data[:end_line])))
+         #print self.traces[6].data[:end_line]
+ 
+     
+diff -Naur reduce-2.2.1-jep05/HISTORY reduce-2.2.1-jep06/HISTORY
+--- reduce-2.2.1-jep05/HISTORY	2011-07-22 19:01:41.055133344 -0400
++++ reduce-2.2.1-jep06/HISTORY	2011-07-22 19:14:01.201828442 -0400
+@@ -1,3 +1,13 @@
++2011-07-22 reduce-2.2.1-jep06
++
++    rlo.py and dataFile.py
++
++        Fixed newline bugs for writing to summary.dat.  
++        Simplified the code that writes to summary.dat.  
++
++    New code tries to follow PEP 8 -- Style Guide for Python Code
++    http://www.python.org/dev/peps/pep-0008/
++
+ 2011-07-22 reduce-2.2.1-jep05
+ 
+     rlo.py
+@@ -15,6 +25,9 @@
+ 
+         Added execute permissions.  
+ 
++    New code tries to follow PEP 8 -- Style Guide for Python Code
++    http://www.python.org/dev/peps/pep-0008/
++
+ 2011-07-21 reduce-2.2.1-jep04
+ 
+     rlo.py
+diff -Naur reduce-2.2.1-jep05/rlo.py reduce-2.2.1-jep06/rlo.py
+--- reduce-2.2.1-jep05/rlo.py	2011-07-22 18:17:13.996662812 -0400
++++ reduce-2.2.1-jep06/rlo.py	2011-07-22 19:15:21.920813666 -0400
+@@ -113,8 +113,8 @@
+ 
+ summary_file_path = os.path.join(reduce_path, 'summary.dat')
+ print 'summary_file_path:', summary_file_path
+-summary_file=open(summary_file_path, 'w');
+-summary_file.write('Specimen\tRate\tPeak Load')
++summary_file = open(summary_file_path, 'w')
++print >>summary_file, 'Specimen\tRate\tPeak Load'
+ 
+ working_files=[]
+ measurement_file_names=[]
+@@ -351,7 +351,7 @@
+     picturename = plot_disp_zeroed_load(thisDataFile)
+     shutil.move(picturename,os.path.join(image_path,picturename))
+     
+-    thisDataFile.log_info(summary_file,test_end)
++    thisDataFile.log_info(summary_file, test_end)
+     
+     if thisDataFile.Has_Measurement_File :
+         if thisDataFile.Gage_Length_in !=0 and thisDataFile.CS_Area_in2 != 0:

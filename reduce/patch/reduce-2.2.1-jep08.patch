@@ -1,0 +1,71 @@
+diff -Naur reduce-2.2.1-jep07/HISTORY reduce-2.2.1-jep08/HISTORY
+--- reduce-2.2.1-jep07/HISTORY	2011-07-22 20:12:58.861354038 -0400
++++ reduce-2.2.1-jep08/HISTORY	2011-07-22 20:57:57.407428721 -0400
+@@ -1,3 +1,17 @@
++2011-07-22 reduce-2.2.1-jep08
++
++    rlo.py
++
++        Refactored code that deletes lines 
++        that have stuff that can not be interpreted as a float. 
++
++    MD5SUM
++
++        Started practice of having this. 
++
++    New code tries to follow PEP 8 -- Style Guide for Python Code
++    http://www.python.org/dev/peps/pep-0008/
++
+ 2011-07-22 reduce-2.2.1-jep07
+ 
+     rlo.py
+diff -Naur reduce-2.2.1-jep07/MD5SUM reduce-2.2.1-jep08/MD5SUM
+--- reduce-2.2.1-jep07/MD5SUM	1969-12-31 19:00:00.000000000 -0500
++++ reduce-2.2.1-jep08/MD5SUM	2011-07-22 20:58:03.503352084 -0400
+@@ -0,0 +1,7 @@
++70bca034e0a8199fb351dbd587ac3a8f  dataFile.py
++a930d17bf6005ae0b785011f8d274785  HISTORY
++8cdc0838a5533543846001ab66c4d695  measurementFile.py
++063e9a94c143531bdd370d6e9b9fc85c  reducePlot.py
++3da042243a29e3c40ec50f04907dbc39  rlo.py
++92f9899ed684652be377a18488d867da  setup.py
++39212773f9861e9e9c218a6cc3c8c40f  tee.py
+diff -Naur reduce-2.2.1-jep07/rlo.py reduce-2.2.1-jep08/rlo.py
+--- reduce-2.2.1-jep07/rlo.py	2011-07-22 19:57:56.380699757 -0400
++++ reduce-2.2.1-jep08/rlo.py	2011-07-22 20:55:05.769586501 -0400
+@@ -148,14 +148,18 @@
+         return False
+     else:
+         return True
+-        
+-def isnotfloat(s):
++
++def hasNonFloat(s): # ^^^ what naming convention to use? 
+     '''
+     Takes a single argument. 
+-    Returns True if that argument can not be interpreted as a float; 
++    Returns True if that argument has any non-floats; 
+     returns False otherwise. 
+     '''
+-    return not isfloat(s)
++    for word in s.split():
++        if not isfloat(word):
++            return True
++    else:
++        return False
+         
+ # Remove lines from working_files 
+ # that have anything that can not be interpreted as a float. 
+@@ -163,11 +167,7 @@
+     srcfile = open(filename, 'rU')
+     dstfile = tempfile.NamedTemporaryFile(mode='w', delete=False)
+     for line in srcfile:
+-        foundNonFloat=False
+-        for s in line.split():
+-            if not isfloat(s):
+-                foundNonFloat=True
+-        if not foundNonFloat:
++        if not hasNonFloat(line):
+             dstfile.write(line)
+     dstfile.close()
+     srcfile.close()

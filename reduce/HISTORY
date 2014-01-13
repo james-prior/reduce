@@ -1,13 +1,115 @@
+2011-07-22 reduce-2.2.1-jep08
+
+    rlo.py
+
+        Refactored code that deletes lines 
+        that have stuff that can not be interpreted as a float. 
+
+    MD5SUM
+
+        Started practice of having this. 
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-22 reduce-2.2.1-jep07
+
+    rlo.py
+
+        Redirected almost all normal print output to both 
+        standard output and the log file. Refactored such code. 
+        Fixed probable bug that had printed onto two lines what 
+        was likely supposed to be on a single line. (Lines 212-214). 
+
+        Added printing of some blank lines between major sections 
+        of activity. 
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-22 reduce-2.2.1-jep06
+
+    rlo.py and dataFile.py
+
+        Fixed newline bugs for writing to summary.dat.  
+        Simplified the code that writes to summary.dat.  
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-22 reduce-2.2.1-jep05
+
+    rlo.py
+
+        Create summary.dat file in reduce_path directory 
+        instead of in base_path directory.  
+
+        Grouped summary.dat creation and header writing code together. 
+        Moved directory creation code to allow this. 
+
+        Changed test for directory creation for write instead of read. 
+        Deleted some test code from directory creation code. 
+
+    tee.py
+
+        Added execute permissions.  
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-21 reduce-2.2.1-jep04
+
+    rlo.py
+
+        Cleaned up code that deletes lines that have stuff that can 
+        not be interpreted as a float. 
+        Use tempfile.NamedTemporaryFile() instead of tempfile.mktemp()
+        because the latter is documented as being unsafe. 
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-21 reduce-2.2.1-jep03
+
+    rlo.py
+
+        Fixed code to delete only lines that have stuff that can not 
+        be interpreted as a float. This code works but is ugly 
+        and should be refactored. 
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-21 reduce-2.2.1-jep02
+
+    rlo.py
+
+        Refactored code that deletes second line of each working_file 
+        in preparation for more important reworking of code to 
+        better decide which lines to delete. 
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
+2011-07-21 reduce-2.2.0-jep05
+
+    rlo.py
+
+        Refactored code that copies *.txt and *.xls files. 
+
+    New code tries to follow PEP 8 -- Style Guide for Python Code
+    http://www.python.org/dev/peps/pep-0008/
+
 2011-07-21 reduce-2.2.0-jep04
 
-   rlo.py
+    rlo.py
 
-       Iverted test of __name__ near top of file, so that following 
-       code (which is most of the code) could be dedented one level, 
-       That led to consolidating some statements onto a single line 
-       which had been split across more than one line. 
+        Iverted test of __name__ near top of file, so that following 
+        code (which is most of the code) could be dedented one level.  
+        That led to consolidating some statements onto a single line 
+        which had been split across more than one line. 
 
-       Redirected usage() output to standard error.  
+        Redirected usage() output to standard error.  
 
     New code tries to follow PEP 8 -- Style Guide for Python Code
     http://www.python.org/dev/peps/pep-0008/

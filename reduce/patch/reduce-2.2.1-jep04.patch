@@ -1,0 +1,86 @@
+diff -Naur reduce-2.2.1-jep03/HISTORY reduce-2.2.1-jep04/HISTORY
+--- reduce-2.2.1-jep03/HISTORY	2011-07-21 20:18:40.103259142 -0400
++++ reduce-2.2.1-jep04/HISTORY	2011-07-21 21:25:14.609041405 -0400
+@@ -1,3 +1,15 @@
++2011-07-21 reduce-2.2.1-jep04
++
++    rlo.py
++
++        Cleaned up code that deletes lines that have stuff that can 
++        not be interpreted as a float. 
++        Use tempfile.NamedTemporaryFile() instead of tempfile.mktemp()
++        because the latter is documented as being unsafe. 
++
++    New code tries to follow PEP 8 -- Style Guide for Python Code
++    http://www.python.org/dev/peps/pep-0008/
++
+ 2011-07-21 reduce-2.2.1-jep03
+ 
+     rlo.py
+diff -Naur reduce-2.2.1-jep03/rlo.py reduce-2.2.1-jep04/rlo.py
+--- reduce-2.2.1-jep03/rlo.py	2011-07-21 20:23:05.307925070 -0400
++++ reduce-2.2.1-jep04/rlo.py	2011-07-21 21:20:45.792420888 -0400
+@@ -133,6 +133,11 @@
+         measurement_file_names.append(destfile)
+ 
+ def isfloat(s):
++    '''
++    Takes a single argument. 
++    Returns True if that argument can be interpreted as a float; 
++    returns False otherwise. 
++    '''
+     try:
+         float(s)
+     except:
+@@ -141,39 +146,28 @@
+         return True
+         
+ def isnotfloat(s):
+-    try:
+-        float(s)
+-    except:
+-        return True
+-    else:
+-        return False
++    '''
++    Takes a single argument. 
++    Returns True if that argument can not be interpreted as a float; 
++    returns False otherwise. 
++    '''
++    return not isfloat(s)
+         
+-# Remove the second header line so the script doesn't choke
+-debug = False # ^^^ remove
+-temp = tempfile.mktemp() # ^^^ this dangerous
++# Remove lines from working_files 
++# that have anything that can not be interpreted as a float. 
+ for filename in working_files:
+-    shutil.move(filename, temp)
+-    dstfile = open(filename, 'w')
+-    srcfile = open(temp, 'rU')
+-    # foofile = tempfile.NamedTemporaryFile(mode='wU',delete=False)
+-    for line in srcfile.readlines():
++    srcfile = open(filename, 'rU')
++    dstfile = tempfile.NamedTemporaryFile(mode='w', delete=False)
++    for line in srcfile:
+         foundNonFloat=False
+         for s in line.split():
+             if not isfloat(s):
+                 foundNonFloat=True
+-        if debug: print '"%s"' % line.strip(),
+         if not foundNonFloat:
+             dstfile.write(line)
+-        else:
+-            if debug: print 'NOT OUTPUT',
+-        if debug: print
+     dstfile.close()
+     srcfile.close()
+-try:
+-    os.remove(temp)
+-except:
+-    print >>sys.stderr, 'ERROR: Could not remove temp file "%s".' % temp
+-    sys.exit(os.EX_USAGE)
++    shutil.move(dstfile.name, filename)
+ 
+ # go into the working file directory and create the summary file
+ 
