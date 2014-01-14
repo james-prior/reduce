@@ -1,3 +1,21 @@
+2013-01-11 reduce-2.2.4-bwh01 Bryan Harris
+
+    misc
+
+        Attempted to apply the rest of James' patches.  Got lots of error, but 
+        where I checked they applied cleanly. Hopefully they all took.  
+        The test set still seems to work.
+
+    measurementFile.py
+
+        Applied patches and fixed a (new?) bug in the code to strip out 
+        STL (Structural Test Lab) labels from measurement sheets.
+
+    reducePlot.py
+
+	Applied James' patches here.
+
+
 2011-08-04 reduce-2.2.4-jep02 James Prior
 
     dataFile.py
@@ -61,6 +79,12 @@
 
         Fixed harmless off by one bug for value of ZERO_LOAD
         (ZERO_LOAD has a new bad value of [3])
+
+2011-07-28 reduce-2.2.3-jep05 James Prior
+
+    dataFile.py
+
+        Fixed harmless off by one bug for value of ZERO_LOAD
 
 2011-07-28 reduce-2.2.3-jep05 James Prior
 

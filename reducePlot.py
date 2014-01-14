@@ -22,6 +22,8 @@ import os
 
 MAX_PLOT_POINTS = 500 #!!! Why bother with a limit? What's the drawback of not limiting them? 
 
+MAX_PLOT_POINTS = 500 #!!! Why bother with a limit? What's the drawback of not limiting them? 
+
 def decimate(array, points):
     if not isinstance(points, int):
         raise Error, 'number of points should be an integer'
