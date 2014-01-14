@@ -1,3 +1,9 @@
+2013-01-11 reduce-2.2.4-bwh02 Bryan Harris
+
+    setup.py
+
+        Added py2exe options.  Need testing.
+
 2013-01-11 reduce-2.2.4-bwh01 Bryan Harris
 
     misc

@@ -27,6 +27,9 @@ setup(name='reduce',
       author_email='brywilharris@gmail.com',
       license='GPL v3 or later',
       url='https://launchpad.net/reduce',
-      long_description='A program for making pretty pictures of a whole directory test data at once.'
-      )
+      long_description='A program for making pretty pictures of a whole directory test data at once.',
+      options = {'py2exe':{'bundle_files':1}},
+      console = ['rlo.py'],
+      zipfile = None,
+)
 
