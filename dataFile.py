@@ -367,6 +367,7 @@ class DataFile_SL(DataFile):
     ZERO_LOAD = 6 #!!! seems to be index for column in output *.txt file, which has "zero load" data. The "zero load" data seems to be the force measurements minus the force when no load. It seems that lower column indexes are reserved for echoing input columns. 
     #ZERO_LOAD, = range(3,3+1) #!!! what is the clean Python way of extending the equivalent of a C enumerated type? 
     #print 'ZERO_LOAD:', ZERO_LOAD
+    Stress_PSI = None
 
     def __init__(self, name, *args, **kwargs):
         DataFile.__init__(self, *args, **kwargs)
@@ -388,6 +389,7 @@ class DataFile_SL(DataFile):
 
     def get_zl_trace(self): return self.traces[self.ZERO_LOAD]
     def get_zl_data(self): return self.traces[self.ZERO_LOAD].get_data()
+    #def get_stress_data(self): return self.traces[self.Stress_PSI].get_data()
 
     def log_info(self, logfile, end_line):
         print >>logfile, '%s\t%s\t%s' % (
@@ -420,10 +422,27 @@ class DataFile_SL(DataFile):
 
         for mfn in measurement_files:
             for specimen in mfn.specimens:
-                if filename.find(specimen.stl_id) != -1:
-                    print filename, 
-                    print 'appears to have a measurement file entry:',
-                    print specimen
+                if self.textfile.find(specimen.stl_id) != -1:
+                    #print self.textfile, 
+                    #print 'has a measurement file entry:'
+                    #print specimen
+                    #try:
+                    #    print "width",specimen.dimension['width']
+                    #except(KeyError): 
+                    #    print "None"
+                    #try:
+                    #    print "thickness",specimen.dimension['thickness']
+                    #except(KeyError): 
+                    #    print "None"
+                    #try:
+                    #    print "length",specimen.dimension['length']
+                    #except(KeyError): 
+                    #    print "None"
+                    #try:
+                    #    print "radius",specimen.dimension['radius']
+                    #except(KeyError): 
+                    #    print "None"
+                    #print "area",specimen.area
                     self.has_measurement_file = True
                     self.cs_area_in2 = specimen.area
 
@@ -452,6 +471,7 @@ class DataFile_SL(DataFile):
 
         print 'The end of the test is line:', test_end
         print 'The end of the test is time:', self.get_time_data()[test_end] #!!! [test_end] is curious
+        #test_end is where we think the specimen broke
 
         # Get the load shift from the post failure region. 
         if self.area_end_line < 0.99 * self.number_of_lines:
@@ -477,6 +497,7 @@ class DataFile_SL(DataFile):
             self.append_column([], 'blank')
 
         self.append_column(new_column, 'Zeroed Load [lbf]')
+        
 
         #Plot the data raw data and the blown up axis after zeroing the load
 
@@ -524,10 +545,13 @@ class DataFile_SL(DataFile):
         plot_disp_zeroed_load(self)
 
         self.log_info(summary_file, test_end)
-
+        
+        #Fudge the gage length for now WIP
+        self.gage_length_in = 0.391        
+        
         if self.has_measurement_file \
-        and self.gage_length_in != 0 \
-        and self.cs_area_in2 != 0:
+        and self.gage_length_in != None \
+        and self.cs_area_in2 != None:
             new_column = self.get_stroke_data()
             load_data = self.get_load_data()
 
@@ -543,17 +567,22 @@ class DataFile_SL(DataFile):
             for i in range(len(new_column)):
                 new_column[i] = (new_column[i]-intercept) / self.gage_length_in
             self.append_column(new_column, 'Nominal Strain [in/in]')
-            nom_strain = len(self.traces)-1
-
-            new_column = self.ZERO_LOAD
-            for i in range(len(new_column)):
-                new_column[i] /= self.cs_area_in2
-            self.append_column(new_column, 'Stress [psi]')
-            psi = len(self.traces) - 1
+            self.nom_strain = len(self.traces)-1
+            
+            for i in range(len(load_data)):
+                load_data[i] = load_data[i] / self.cs_area_in2
+            self.append_column(load_data, 'Stress [psi]')
+            self.Stress_PSI = self.number_of_columns-1
+            
+            slope = ((load_data[slope_end] - load_data[slope_start])
+            /       (new_column[slope_end] - new_column[slope_start]))
+            print 'modulus =', slope / self.cs_area_in2
+            intercept = new_column[slope_start]-load_data[slope_start] / slope
+            print 'intercept =', intercept
 
             test_end = self.find_neg(test_end)
 
-            plot_stress_strain(self, psi, nom_strain, 0, test_end)
+            plot_stress_strain(self, self.Stress_PSI, self.nom_strain, 0, test_end)
 
 class DataTrace:
     def __init__(self, filename, column, label, *args, **kwargs):
