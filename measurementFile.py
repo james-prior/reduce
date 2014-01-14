@@ -87,7 +87,7 @@ class MeasFile:
                         self.specimens.append(specimen)
                         
                     else:
-                        print "Cell was the wrong type, not text!"
+                        print "Cell", sheet.name, arow, acol, " was the wrong type, not text!"
                         
 
     def __str__(self):

@@ -1,7 +1,7 @@
 d22d26f5e12df29d258779afb9c24321  AUTHORS
-7fc37286d0dc3999183f5001a08e045d  dataFile.py
+6fbac1f24dc4b7d718fa33e09bfa565f  dataFile.py
 e3a1d6ae52a7717eb4cd9469306b7554  HISTORY
-7eb888b27c8dfbfe88545385dc12a12b  measurementFile.py
+9e6f90455c69c047c72247992fd8709b  measurementFile.py
 6d00adcfeced31b25a43b79a9a83fbff  reducePlot.py
 79508b7d560a8a5d73f33116f5fbb8ca  rlo.py
 b25c030bb458cbf81bbf05a6421dbd70  setup.py
