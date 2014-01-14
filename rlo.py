@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 #"Copyright 2009 Bryan Harris"
 # Copyright 2011 James Prior
 #
