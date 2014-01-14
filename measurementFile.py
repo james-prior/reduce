@@ -81,7 +81,8 @@ class MeasFile:
                     #print acell.ctype
                     if acell.ctype == 1: #!!! cell contans text
                         #!!! what's going on with the following assignment? Does acell.value have any effect? 
-                        specID = acell.value.upper().replace('STL', '').strip()
+                        specID = acell.value.upper().replace('STL-', '').strip()
+                        specID = specID.value.upper().replace('STL', '').strip()
                         print "Found specimen number:",specID
                         specimen = Specimen(specID, arow, acol, sheet)
                         self.specimens.append(specimen)
